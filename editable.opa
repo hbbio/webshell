@@ -5,7 +5,7 @@
 import stdlib.themes.bootstrap
 import stdlib.widgets.bootstrap
 
-keymap = [ (53, "("),(187, "+" ), (188, ",") (189, "-"), 
+keymap = [ (53, "("),(187, "+" ), (188, ","), (189, "-"), 
 	       (190, "."), (191, "/" ), (221, "*") ] // change: will be {}
 
 function addChar(event, key) {
