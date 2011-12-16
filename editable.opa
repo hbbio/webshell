@@ -5,11 +5,11 @@
 import stdlib.themes.bootstrap
 import stdlib.widgets.bootstrap
 
-keymap = [ (53, "("),(187, "+" ), (188, ","), (189, "-"), 
-	       (190, "."), (191, "/" ), (221, "*") ] // change: will be {}
+// keymap = [ (53, "("),(187, "+" ), (188, ","), (189, "-"), (190, "."), (191, "/" ), (221, "*") ] // change: will be {}
+keymap = []
 
 function addChar(event, key) {
-	symbol = Text.to_string(Text.from_character(key));
+	symbol = String.of_byte_unsafe(key);
 	symbol = 
 		match (List.assoc(key, keymap)) {
 		case {none}:
@@ -20,6 +20,8 @@ function addChar(event, key) {
 		}
 	match(key) {
 		// case Dom.Key.LEFT: void;
+		// case missing -> syntax error reported too early
+		case 16: void; // Shift
 		default: #precaret =+ symbol;
 	}
 }
@@ -45,15 +47,21 @@ function move(dir) {
 	}
 }
 
-function eval(event) {
-	// jlog("{event.key_code}");
+function eval1(event) {
+	match (event.key_code) {
+		case {none}: #status = "Key not captured";
+		case {some: key}: #status = "Key: {key}"; addChar(event, key);
+	}
+}
+
+function eval2(event) {
 	match (event.key_code) {
 		case {none}: #status = "Key not captured";
 		case {some: 8}: #status = "Backspace"; deleteChar();
 		case {some: 13}: #status = "Enter"; addLine(Calc.compute);
 		case {some: 37}: #status = "Left"; move({left});
 		case {some: 39}: #status = "Right"; move({right});
-		case {some: key}: #status = "Key: {key}"; addChar(event, key);
+		case {some: _key}: void;
 	}
 }
 
@@ -80,8 +88,9 @@ function addLine(f) {
 
 function loader(_) {
 	#editor = newLine;
-	window = Dom.select_window();
-	handler = Dom.bind(Dom.select_document(), { keydown }, eval);
+	// window = Dom.select_window();
+	_handler1 = Dom.bind(Dom.select_document(), { keypress }, eval1);
+	_handler2 = Dom.bind(Dom.select_document(), { keydown }, eval2);
 	void // compulsory
 }
 

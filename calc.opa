@@ -4,32 +4,32 @@
 
 module Calc {
 
-  function ws(p) {
-    parser
-    | Rule.ws res=p Rule.ws -> res
-  }
+	function ws(p) {
+	parser
+	| Rule.ws res=p Rule.ws -> res
+	}
 
-  `(` = ws(parser | "(" -> void)
-  `)` = ws(parser | ")" -> void)
+	`(` = ws(parser | "(" -> void)
+	`)` = ws(parser | ")" -> void)
 
-  term = parser
-  | f = {ws(Rule.float)} -> f
-  | `(` ~expr `)` -> expr
+	term = parser
+	| f = {ws(Rule.float)} -> f
+	| `(` ~expr `)` -> expr
 
-  factor = parser
-  | ~term "*" ~factor -> term * factor
-  | ~term "/" ~factor -> term / factor
-  | ~term -> term
+	factor = parser
+	| ~term "*" ~factor -> term * factor
+	| ~term "/" ~factor -> term / factor
+	| ~term -> term
 
-  expr = parser
-  | ~factor "+" ~expr -> factor + expr
-  | ~factor "-" ~expr -> factor - expr
-  | ~factor -> factor
+	expr = parser
+	| ~factor "+" ~expr -> factor + expr
+	| ~factor "-" ~expr -> factor - expr
+	| ~factor -> factor
   	
-  function compute(s) {
-    match (Parser.try_parse(expr, s)) {
-    case {some: result}: "{result}";
-    case {none}: "unknown";
-    }
-  }
+	function compute(s) {
+		match (Parser.try_parse(expr, s)) {
+			case {some: result}: "{result}";
+			case {none}: "unknown";
+    	}
+  	}
 }
