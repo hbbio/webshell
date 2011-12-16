@@ -70,20 +70,29 @@ function focus(set) {
 	#status = "Focus: {set}";
 }
 
+shell = "web: login $ ";
+
 newLine =
 	WBootstrap.Typography.header(1, none,
+		<span>{shell}</span>
 		<span id="precaret" style="margin-right: 0px; border-right:thick double #ff0000;"></span>
 		<span id="postcaret" style="margin-left: 0px; padding-left: 0px;"></span>
 	)
 
 function addLine(f) {
 	expr = "{Dom.get_content(#precaret)}{Dom.get_content(#postcaret)}";
-	element = WBootstrap.Message.make(
-		{alert: {title: f(expr), description: <>{expr}</>}, closable: true}, {info}
+	// element = WBootstrap.Message.make(
+	// 	{alert: {title: f(expr), description: <>{expr}</>}, closable: true}, {info}
+	// );
+	element = WBootstrap.Typography.header(1, none,
+		<div>
+			<span>{shell}</span>
+			<span>{expr}</span>
+		</div>
+		<div>{f(expr)}</div>
 	);
 	#inputs =+ element;
 	#editor = newLine;
-	
 }
 
 function loader(_) {
