@@ -1,11 +1,23 @@
+// license: AGPL
+// (c) MLstate, 2011
+// author: Henri Binsztok
+
 import stdlib.themes.bootstrap
 import stdlib.widgets.bootstrap
+
+keymap = [ (53, "("),(187, "+" ), (188, ",") (189, "-"), 
+	       (190, "."), (191, "/" ), (221, "*") ] // change: will be {}
 
 function addChar(event, key) {
 	symbol = Text.to_string(Text.from_character(key));
 	symbol = 
-		if (List.mem({shift}, event.key_modifiers)) { symbol; } // ; is compulsory...
-		else { String.to_lower(symbol); };
+		match (List.assoc(key, keymap)) {
+		case {none}:
+			if (List.mem({shift}, event.key_modifiers)) { symbol; } // ; is compulsory...
+			else { String.to_lower(symbol); };
+		case {some: symbol}:
+			symbol;
+		}
 	match(key) {
 		// case Dom.Key.LEFT: void;
 		default: #precaret =+ symbol;
@@ -38,7 +50,7 @@ function eval(event) {
 	match (event.key_code) {
 		case {none}: #status = "Key not captured";
 		case {some: 8}: #status = "Backspace"; deleteChar();
-		case {some: 13}: #status = "Enter"; addLine();
+		case {some: 13}: #status = "Enter"; addLine(Calc.compute);
 		case {some: 37}: #status = "Left"; move({left});
 		case {some: 39}: #status = "Right"; move({right});
 		case {some: key}: #status = "Key: {key}"; addChar(event, key);
@@ -52,15 +64,14 @@ function focus(set) {
 
 newLine =
 	WBootstrap.Typography.header(1, none,
-		<span id="precaret" style="margin-right: 0px"></span>
-		<img src="http://pixlpaste.com/download/tfjg" alt="|" height=18 width=1/>
-		<span id="postcaret" style="margin-left: 0px"></span>
+		<span id="precaret" style="margin-right: 0px; border-right:thick double #ff0000;"></span>
+		<span id="postcaret" style="margin-left: 0px; padding-left: 0px;"></span>
 	)
 
-function addLine() {
-	description = <>{Dom.get_content(#precaret)}{Dom.get_content(#postcaret)}</>;
+function addLine(f) {
+	expr = "{Dom.get_content(#precaret)}{Dom.get_content(#postcaret)}";
 	element = WBootstrap.Message.make(
-		{alert: {title: "Ok", ~description}, closable: true}, {info}
+		{alert: {title: f(expr), description: <>{expr}</>}, closable: true}, {info}
 	);
 	#inputs =+ element;
 	#editor = newLine;
