@@ -5,7 +5,7 @@
 module Calc {
 
   function ws(p) {
-    parser 
+    parser
     | Rule.ws res=p Rule.ws -> res
   }
 
@@ -14,11 +14,11 @@ module Calc {
 
   term = parser
   | f = {ws(Rule.float)} -> f
-  | {`(`} ~expr {`)`} -> expr
+  | `(` ~expr `)` -> expr
 
   factor = parser
   | ~term "*" ~factor -> term * factor
-  | ~term "/" ~factor -> Float.`/`(term, factor)
+  | ~term "/" ~factor -> term / factor
   | ~term -> term
 
   expr = parser
@@ -26,10 +26,10 @@ module Calc {
   | ~factor "-" ~expr -> factor - expr
   | ~factor -> factor
   	
-	function compute(s) {
-		match (Parser.try_parse(expr, s)) {
-    		case {some: result}: "{result}";
-    		case {none}: "unknown";
-    	}
-	}
+  function compute(s) {
+    match (Parser.try_parse(expr, s)) {
+    case {some: result}: "{result}";
+    case {none}: "unknown";
+    }
+  }
 }
