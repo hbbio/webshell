@@ -120,5 +120,5 @@ function page() {
 }
 
 Server.start(
-	Server.http, { ~page, title: "EditableArea" }
+	Server.http, { ~page, title: "webshell" }
 )

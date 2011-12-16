@@ -1,6 +1,6 @@
 NAME = webshell.exe
 
-SRC  = calc.opa editable.opa
+SRC  = calc.opa webshell.opa
 
 all: $(NAME)
 
