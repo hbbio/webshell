@@ -93,11 +93,13 @@ function addLine(f) {
 	);
 	#inputs =+ element;
 	#editor = newLine;
+	Dom.scroll_to_bottom(Dom.select_window());
 }
 
 function loader(_) {
 	#editor = newLine;
 	// window = Dom.select_window();
+	// Source: http://unixpapa.com/js/testkey.html
 	_handler1 = Dom.bind(Dom.select_document(), { keypress }, eval1);
 	_handler2 = Dom.bind(Dom.select_document(), { keydown }, eval2);
 	void // compulsory

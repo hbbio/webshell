@@ -1,0 +1,12 @@
+NAME = webshell.exe
+
+SRC  = calc.opa editable.opa
+
+all: $(NAME)
+
+$(NAME):
+	opa --parser js-like $(SRC)
+
+clean:
+	rm -f $(NAME)
+	rm -rf _build
