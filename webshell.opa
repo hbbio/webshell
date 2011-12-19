@@ -5,6 +5,10 @@
 import stdlib.themes.bootstrap
 import stdlib.widgets.bootstrap
 
+type user = { string name, string password, list(string) history }
+
+database intmap(user) /users ;	  
+
 // keymap = [ (53, "("),(187, "+" ), (188, ","), (189, "-"), (190, "."), (191, "/" ), (221, "*") ] // change: will be {}
 keymap = []
 
@@ -44,6 +48,8 @@ function move(dir) {
 		case {rightmost}:
 			#precaret =+ Dom.get_content(#postcaret);
 			#postcaret = <></>;
+		case {up}: void;
+		case {down}: void;
 	}
 }
 
@@ -60,8 +66,10 @@ function eval2(event) {
 		case {some: 8}: #status = "Backspace"; deleteChar();
 		case {some: 13}: #status = "Enter"; addLine(Calc.compute);
 		case {some: 37}: #status = "Left"; move({left});
+		case {some: 38}: #status = "Up"; move({up});
 		case {some: 39}: #status = "Right"; move({right});
-		case {some: _key}: void;
+		case {some: 40}: #status = "down"; move({down});
+		case {some: key}:  #status = "Key: {key} discarded"; void;
 	}
 }
 
