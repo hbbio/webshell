@@ -1,3 +1,7 @@
+// license: AGPL
+// (c) MLstate, 2011
+// author: Henri Binsztok
+
 import stdlib.crypto
 
 type user = { string password, list(string) history }

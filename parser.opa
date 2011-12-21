@@ -25,6 +25,10 @@ module Calc {
 	| ~factor "+" ~expr -> factor + expr
 	| ~factor "-" ~expr -> factor - expr
 	| ~factor -> factor
+	
+	shell = parser
+	| command={ws(Rule.ident)} arg={ws(Rule.ident)} -> { ~command, ~arg }
+	| ~expr -> {value: expr}
   	
 	function compute(s) {
 		match (Parser.try_parse(expr, s)) {
