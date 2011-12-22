@@ -66,20 +66,14 @@ client module LineEditor {
 	}
 	
 	function addChar(echo, event, key) {
-	symbol = String.of_byte_unsafe(key);
-	symbol = 
-		// match (List.assoc(key, keymap)) {
-		// case {none}:
-			if (List.mem({shift}, event.key_modifiers)) { symbol; } // ; is compulsory...
+		symbol = String.of_byte_unsafe(key);
+		symbol = 
+			if (List.mem({shift}, event.key_modifiers)) { symbol; }
 			else { String.to_lower(symbol); };
-		// case {some: symbol}:
-		//	symbol;
-		// }
-	match(key) {
-		// case missing -> syntax error reported too early
-		case 16: void; // Shift
-		default: if (echo) { #precaret =+ symbol; } else void;
-	}
+		match(key) {
+			case 16: void; // Shift
+			default: if (echo) { #precaret =+ symbol; } else void;
+		}
 	}
 
 	function deleteChar() {
@@ -88,21 +82,21 @@ client module LineEditor {
 	}
 
 	function move(dir) {
-	match (dir) {
-		case {left}:
-			previous = Dom.get_content(#precaret);
-			#precaret = String.sub(0, String.length(previous) - 1, previous);
-			#postcaret += String.get(String.length(previous) - 1, previous);
-		case {right}:
-			previous = Dom.get_content(#postcaret);
-			#postcaret = String.sub(1, String.length(previous) - 1, previous);
-			#precaret =+ String.get(0, previous);
-		case {rightmost}:
-			#precaret =+ Dom.get_content(#postcaret);
-			#postcaret = <></>;
-		case {up}: void;
-		case {down}: void;
-	}
+		match (dir) {
+			case {left}:
+				previous = Dom.get_content(#precaret);
+				#precaret = String.sub(0, String.length(previous) - 1, previous);
+				#postcaret += String.get(String.length(previous) - 1, previous);
+			case {right}:
+				previous = Dom.get_content(#postcaret);
+				#postcaret = String.sub(1, String.length(previous) - 1, previous);
+				#precaret =+ String.get(0, previous);
+			case {rightmost}:
+				#precaret =+ Dom.get_content(#postcaret);
+				#postcaret = <></>;
+			case {up}: void;
+			case {down}: void;
+		}
 	}
 	
 }

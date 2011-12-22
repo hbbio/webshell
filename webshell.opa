@@ -42,8 +42,6 @@ client function readevalwrite(expr) {
 	Dom.scroll_to_bottom(Dom.select_window());
 }
 
-// warning: no check for onload instead of onready
-// warning: no check for events bound directly in the (server-side) page function
 function page() {
 	html = WBootstrap.Layout.fixed(
 	WBootstrap.Typography.header(1, none,
