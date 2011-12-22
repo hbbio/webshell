@@ -19,41 +19,42 @@ function prompt(login) {
 }
 
 client function warner(msg) {
-	#inputs =+ msg;
+	#terminal =+ msg;
 }
 
 client function asker(f, msg) {
-	#inputs =+ msg;	
+	#terminal =+ msg;	
 }
 
-function loop(_) {
+client function loop(_) {
 	LineEditor.init(#editor, readevalwrite, true);
 }
 		
-function readevalwrite(expr) {
+client function readevalwrite(expr) {
 	element = 
 		<div>
 			<span>{prompt({none})}</span>
 			<span>{expr}</span>
 		</div>
-		<div>{Parser.compute(expr)}</div>;
-	#inputs =+ element;
-	LineEditor.init(#editor, readevalwrite, true);
+		<div>{Calc.compute(expr)}</div>;
+	#terminal =+ element;
+	LineEditor.clear();
 	Dom.scroll_to_bottom(Dom.select_window());
 }
 
 // warning: no check for onload instead of onready
 // warning: no check for events bound directly in the (server-side) page function
 function page() {
-	WBootstrap.Layout.fixed(
+	html = WBootstrap.Layout.fixed(
 	WBootstrap.Typography.header(1, none,
 		<div id="terminal"/>
 		<div id="line" onready={loop}>
 			{prompt({none})}
 			<span id="editor"/>
 		</div>
-		<div id="status"/>
 	));
+	<>{html}</>
+	<div id="status"/>
 }
 
 Server.start(

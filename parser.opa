@@ -2,7 +2,7 @@
 // (c) MLstate, 2011
 // author: Adam Koprowski, Henri Binsztok
 
-module Calc {
+client module Calc {
 
 	function ws(p) {
 	parser

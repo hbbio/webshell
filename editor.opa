@@ -23,22 +23,28 @@ client module Capture {
 	}
 }
 
-module LineEditor {
+client module LineEditor {
 
 	editor = <span id="precaret" style="margin-right: 0px; border-right:thick double #ff0000;"/><span id="postcaret" style="margin-left: 0px; padding-left: 0px;"/>;
 	
 	function init(selector, callback, echo) {
 		*selector = editor;
 		Capture.set(evalKeyPress(echo, _), evalKeyDown(callback, _));
-	}	
+	}
 	
 	function get() {
 		"{Dom.get_content(#precaret)}{Dom.get_content(#postcaret)}"
 	}
 	
+	function clear() {
+		#precaret="";
+		#postcaret="";
+	}
+	
 	function evalKeyPress(echo, event) {
 		match (event.key_code) {
 			case {none}: #status = "KeyPress not captured";
+			case {some: 13}: void;
 			case {some: key}: #status = "Key: {key}"; addChar(echo, event, key);
 		}
 	}
@@ -49,7 +55,7 @@ module LineEditor {
 			case {some: 8}: #status = "Backspace"; deleteChar();
 			case {some: 13}:
 				#status = "Enter";
-				Capture.unset();
+				//Capture.unset();
 				callback(get());
 			case {some: 37}: #status = "Left"; move({left});
 			case {some: 38}: #status = "Up"; move({up});
