@@ -54,11 +54,27 @@ client function readevalwrite(expr) {
 	Dom.scroll_to_bottom(Dom.select_window());
 }
 
+facebook_login =
+  WBootstrap.Button.make(
+    { button:
+       <img style="width:18px; height:18px; vertical-align:top;" title="Facebook" src="https://opalang.org/sso/img/fb-icon.png" alt="Connect with Facebook" />
+       <span>Facebook</>
+    , callback: ignore
+    },
+    []
+  )
+
 function page() {
+  login =
+    <h3 style="float: right">
+      <a>You can sign in with:</>
+      {facebook_login}
+    </>
   topbar =
     WB.Navigation.topbar(
       WB.Layout.fixed(
-        WB.Navigation.brand(<>webshell</>, none, ignore)
+        WB.Navigation.brand(<>webshell</>, none, ignore) <+>
+        login
       )
     )
   html = WB.Layout.fixed(
@@ -77,9 +93,7 @@ function page() {
    </>
 }
 
-Server.start(
-	Server.http, { ~page, title: "webshell" }
-)
+Server.start(Server.http, { ~page, title: "webshell" })
 
 css = css
   .body { padding-top: 50px }
