@@ -1,11 +1,11 @@
 NAME = webshell.exe
 
-SRC  = parser.opa user.opa editor.opa webshell.opa
+SRC  = parser.opa editor.opa webshell.opa login.opa fb_login.opa fb_config.opa
 
 all: $(NAME)
 
 $(NAME): $(SRC)
-	opa --parser js-like $(SRC)
+	opa --parser js-like $(SRC) -o $(NAME)
 
 clean:
 	rm -f $(NAME)

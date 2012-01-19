@@ -6,6 +6,8 @@
 import stdlib.themes.bootstrap
 import stdlib.widgets.bootstrap
 
+type User.t = {guest} or {FbLogin.user fb_user}
+
 WB = WBootstrap
 
 function focus(set) {
@@ -13,12 +15,15 @@ function focus(set) {
 	#status = "Focus: {set}";
 }
 
-function prompt(login) {
-	<span class="prompt">
-	{ match (login) {
-		case {none}: "web: anonymous $ ";
-		case {some: username}: "web: {username} $ "; } }
-	</span>
+function prompt() {
+  user_name =
+    match (Login.get_current_user()) {
+      case {guest}: "anonymous"
+      case {~fb_user}: FbLogin.get_name(fb_user)
+    }
+  <span class="prompt">
+    {"web: {user_name} $ "}
+  </span>
 }
 
 function warner(msg) {
@@ -26,13 +31,12 @@ function warner(msg) {
 }
 
 function asker(f, msg) {
-	#terminal =+ msg;	
+	#terminal =+ msg;
 }
 
 function loop(_) {
-	LineEditor.init(#editor, readevalwrite, true);
+	LineEditor.init(#editor, readevalwrite(_), true);
 }
-		
 
 function answer(expr) {
 	match (Parser.try_parse(Calc.shell, expr)) {
@@ -45,7 +49,7 @@ function answer(expr) {
 client function readevalwrite(expr) {
 	element = 
 		<div>
-			<span>{prompt({none})}</span>
+			<span>{prompt()}</span>
 			<span>{expr}</span>
 		</div>
 		<div>{answer(expr)}</div>;
@@ -54,46 +58,45 @@ client function readevalwrite(expr) {
 	Dom.scroll_to_bottom(Dom.select_window());
 }
 
-facebook_login =
-  WBootstrap.Button.make(
-    { button:
-       <img style="width:18px; height:18px; vertical-align:top;" title="Facebook" src="https://opalang.org/sso/img/fb-icon.png" alt="Connect with Facebook" />
-       <span>Facebook</>
-    , callback: ignore
-    },
-    []
-  )
-
 function page() {
-  login =
-    <h3 style="float: right">
-      <a>You can sign in with:</>
-      {facebook_login}
-    </>
   topbar =
     WB.Navigation.topbar(
       WB.Layout.fixed(
         WB.Navigation.brand(<>webshell</>, none, ignore) <+>
-        login
+        <h3 style="float: right">
+          <a>You can sign in with:</>
+          {FbLogin.xhtml}
+        </>
       )
     )
   html = WB.Layout.fixed(
     WB.Typography.header(1, none,
       <div id="terminal"/>
         <div id="line" onready={loop}>
-          {prompt({none})}
+          {prompt()}
           <span id="editor"/>
         </div>
      )
    ) |> Xhtml.update_class("body", _)
-   <>
-     {topbar}
-     {html}
-     <div id="status"/>
-   </>
+  Resource.html("webshell",
+     <>
+       {topbar}
+       {html}
+       <div id="status"/>
+     </>
+   )
 }
 
-Server.start(Server.http, { ~page, title: "webshell" })
+dispatcher = parser
+| "/connect?" data=(.*) ->
+    {
+      FbLogin.login(Text.to_string(data)) |> Login.set_current_user
+      Resource.default_redirection_page("/")
+    }
+| .* ->
+    page()
+
+Server.start(Server.http, { custom: dispatcher })
 
 css = css
   .body { padding-top: 50px }
