@@ -4,7 +4,7 @@ SRC  = parser.opa user.opa editor.opa webshell.opa
 
 all: $(NAME)
 
-$(NAME):
+$(NAME): $(SRC)
 	opa --parser js-like $(SRC)
 
 clean:

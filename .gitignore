@@ -1,0 +1,4 @@
+*.exe
+_build
+_tracks
+*~

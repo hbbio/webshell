@@ -1,9 +1,12 @@
 // license: AGPL
-// (c) MLstate, 2011
+// (c) MLstate, 2011, 2012
 // author: Henri Binsztok
+// author: Adam Koprowski (adding Facebook-connectivity)
 
 import stdlib.themes.bootstrap
 import stdlib.widgets.bootstrap
+
+WB = WBootstrap
 
 function focus(set) {
 	Log.warning("focus", set);
@@ -18,18 +21,19 @@ function prompt(login) {
 	</span>
 }
 
-client function warner(msg) {
+function warner(msg) {
 	#terminal =+ msg;
 }
 
-client function asker(f, msg) {
+function asker(f, msg) {
 	#terminal =+ msg;	
 }
 
-client function loop(_) {
+function loop(_) {
 	LineEditor.init(#editor, readevalwrite, true);
 }
 		
+
 function answer(expr) {
 	match (Parser.try_parse(Calc.shell, expr)) {
 		case { none }: "syntax error"
@@ -51,18 +55,31 @@ client function readevalwrite(expr) {
 }
 
 function page() {
-	html = WBootstrap.Layout.fixed(
-	WBootstrap.Typography.header(1, none,
-		<div id="terminal"/>
-		<div id="line" onready={loop}>
-			{prompt({none})}
-			<span id="editor"/>
-		</div>
-	));
-	<>{html}</>
-	<div id="status"/>
+  topbar =
+    WB.Navigation.topbar(
+      WB.Layout.fixed(
+        WB.Navigation.brand(<>webshell</>, none, ignore)
+      )
+    )
+  html = WB.Layout.fixed(
+    WB.Typography.header(1, none,
+      <div id="terminal"/>
+        <div id="line" onready={loop}>
+          {prompt({none})}
+          <span id="editor"/>
+        </div>
+     )
+   ) |> Xhtml.update_class("body", _)
+   <>
+     {topbar}
+     {html}
+     <div id="status"/>
+   </>
 }
 
 Server.start(
 	Server.http, { ~page, title: "webshell" }
 )
+
+css = css
+  .body { padding-top: 50px }
