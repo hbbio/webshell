@@ -16,13 +16,8 @@ function focus(set) {
 }
 
 function prompt() {
-  user_name =
-    match (Login.get_current_user()) {
-      case {guest}: "anonymous"
-      case {~fb_user}: FbLogin.get_name(fb_user)
-    }
   <span class="prompt">
-    {"web: {user_name} $ "}
+    {"web: {Login.get_current_user_name()} $ "}
   </span>
 }
 
@@ -58,15 +53,33 @@ client function readevalwrite(expr) {
 	Dom.scroll_to_bottom(Dom.select_window());
 }
 
+function login_box() {
+  function block(content) {
+    <h3 style="float: right">{content}</>
+  }
+  login =
+    prompt = <a>You can sign in with:</>
+    block(<>{prompt}{FbLogin.xhtml}</>)
+  logout =
+    function do_logout(_) {
+      Login.set_current_user({guest})
+      Client.reload()
+    }
+    name = <a>{Login.get_current_user_name()}</>
+    button = WBootstrap.Button.make({ button: <>Logout</>, callback: do_logout}, [])
+    block(<>{button}{name}</>)
+  match (Login.get_current_user()) {
+    case {guest}: login
+    default: logout
+  }
+}
+
 function page() {
   topbar =
     WB.Navigation.topbar(
       WB.Layout.fixed(
         WB.Navigation.brand(<>webshell</>, none, ignore) <+>
-        <h3 style="float: right">
-          <a>You can sign in with:</>
-          {FbLogin.xhtml}
-        </>
+        {login_box()}
       )
     )
   html = WB.Layout.fixed(
