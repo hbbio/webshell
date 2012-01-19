@@ -18,7 +18,7 @@ module FbLogin
   private FBG = FbGraph
 
   private config = WebShellFbConfig.config
-  private redirect = "http://localhost:8080/connect"
+  private redirect = "http://webshell.tutorials.opalang.org/connect"
 
   private function get_fb_name(token) {
     opts = { FBG.Read.default_object with token:token.token }

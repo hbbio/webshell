@@ -1,6 +1,7 @@
 // license: AGPL
-// (c) MLstate, 2011
+// (c) MLstate, 2011, 2012
 // author: Henri Binsztok
+// author: Adam Koprowski (adding blinking cursor)
 // Useful link: http://unixpapa.com/js/testkey.html
 
 client module Capture {
@@ -25,10 +26,21 @@ client module Capture {
 
 client module LineEditor {
 
-	editor = <span id="precaret" style="margin-right: 0px; border-right:thick double #ff0000;"/><span id="postcaret" style="margin-left: 0px; padding-left: 0px;"/>;
-	
+	editor =
+          <span id="precaret" /><span id="caret" style={css {margin: 0px 1px; color: lime}}>█</><span id="postcaret" />
+
+        private blinking_delay = 600
+
+        function cursor_blink() {
+          effect = Dom.Effect.fade_toggle()
+                |> Dom.Effect.with_duration({millisec: blinking_delay/2}, _)
+          _ = Dom.transition(#caret, effect)
+          void
+        }
+
 	function init(selector, callback, echo) {
 		*selector = editor;
+                Scheduler.timer(blinking_delay, cursor_blink)
 		Capture.set(evalKeyPress(echo, _), evalKeyDown(callback, _));
 	}
 	
