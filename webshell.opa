@@ -16,20 +16,22 @@ function focus(set) {
 }
 
 function prompt() {
-  <span class="prompt">
-    {"web: {Login.get_current_user_name()} $ "}
-  </span>
+  <>
+    <span class="prompt">web: </span>
+    <span class="username">{Login.get_current_user_name()}</>
+    <span class="prompt"> $ </span>
+  </>
 }
 
 function warner(msg) {
-	#terminal =+ msg;
+	#terminal_prev =+ msg;
 }
 
 function asker(f, msg) {
-	#terminal =+ msg;
+	#terminal_prev =+ msg;
 }
 
-function loop(_) {
+client function loop(_) {
 	LineEditor.init(#editor, readevalwrite(_), true);
 }
 
@@ -40,7 +42,7 @@ function answer(expr) {
 		case { some: { ~command, ~arg } }: "{command}({arg})"
 	}
 }
-		
+
 client function readevalwrite(expr) {
 	element = 
 		<div>
@@ -48,8 +50,9 @@ client function readevalwrite(expr) {
 			<span>{expr}</span>
 		</div>
 		<div>{answer(expr)}</div>;
-	#terminal =+ element;
+	#terminal_prev =+ element;
 	LineEditor.clear();
+        Dom.scroll_to_bottom(#terminal);
 	Dom.scroll_to_bottom(Dom.select_window());
 }
 
@@ -83,14 +86,14 @@ function page() {
       )
     )
   html = WB.Layout.fixed(
-    WB.Typography.header(1, none,
-      <div id="terminal"/>
-        <div id="line" onready={loop}>
-          {prompt()}
-          <span id="editor"/>
-        </div>
-     )
-   ) |> Xhtml.update_class("body", _)
+    <div id="terminal">
+      <div id="terminal_prev" />
+      <div id="terminal_curr" onready={loop}>
+        {prompt()}
+        <span id="editor"/>
+      </>
+    </>
+  )
   Resource.html("webshell",
      <>
        {topbar}
@@ -112,4 +115,24 @@ dispatcher = parser
 Server.start(Server.http, { custom: dispatcher })
 
 css = css
-  .body { padding-top: 50px }
+  #Body {
+    background-color: #444;
+  }
+  #terminal {
+    border: 1px solid gray;
+    padding: 4px;
+    margin-top: 80px;
+    overflow-y: scroll;
+    width: 100%;
+    height: 500px;
+    font-family: courier, monospace;
+    color: white;
+    font-size: 14px;
+    background-color: black;
+  }
+  .username {
+    color: lime;
+  }
+  .prompt {
+    color: #0BC;
+  }
