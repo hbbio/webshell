@@ -30,13 +30,21 @@ client function loop(_) {
 	LineEditor.init(#editor, readevalwrite, true);
 }
 		
+function answer(expr) {
+	match (Parser.try_parse(Calc.shell, expr)) {
+		case { none }: "syntax error"
+		case { some: { value: result } }: "{result}"
+		case { some: { ~command, ~arg } }: "{command}({arg})"
+	}
+}
+		
 client function readevalwrite(expr) {
 	element = 
 		<div>
 			<span>{prompt({none})}</span>
 			<span>{expr}</span>
 		</div>
-		<div>{Calc.compute(expr)}</div>;
+		<div>{answer(expr)}</div>;
 	#terminal =+ element;
 	LineEditor.clear();
 	Dom.scroll_to_bottom(Dom.select_window());
