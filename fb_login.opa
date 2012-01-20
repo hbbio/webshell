@@ -3,7 +3,7 @@
 // author: Adam Koprowski
 
 import stdlib.apis.{facebook, facebook.auth, facebook.graph}
-import stdlib.web.client
+import stdlib.{web.client, system}
 
  // FIXME should be abstract...
 type FbLogin.user =
@@ -11,13 +11,41 @@ type FbLogin.user =
   , string name
   }
 
+database Facebook.config /facebook_config
+
 module FbLogin
 {
+
+  server config =
+    _ = CommandLine.filter(
+      { init: void
+      , parsers: [{ CommandLine.default_parser with
+          names: ["--fb-config"],
+          param_doc: "APP_ID,APP_SECRET",
+          description: "Sets the application ID for the associated Facebook application",
+          function on_param(state) {
+            parser app_id=Rule.alphanum_string [,] app_secret=Rule.alphanum_string ->
+            {
+              /facebook_config <- {~app_id, api_key: app_id, ~app_secret};
+              {no_params: state}
+            }
+          }
+        }]
+      , anonymous: []
+      , title: "Webshell: Facebook configuration"
+      }
+    )
+    match (?/facebook_config) {
+      case {some: config}: config
+      default:
+        Log.error("webshell[config]", "Cannot read Facebook configuration (application id and/or secret key)
+Please re-run your application with: --fb-config APP_ID,APP_SECRET")
+        System.exit(1)
+    }
 
   private FBA = FbAuth(config)
   private FBG = FbGraph
 
-  private config = WebShellFbConfig.config
   private redirect = "http://webshell.tutorials.opalang.org/connect"
 
   private function get_fb_name(token) {
