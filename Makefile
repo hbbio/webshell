@@ -1,11 +1,15 @@
 NAME = webshell.exe
 
 SRC  = parser.opa editor.opa webshell.opa login.opa fb_login.opa search.opa
+SRCS = $(SRC:%=src/%)
 
 all: $(NAME)
 
-$(NAME): $(SRC)
-	opa --parser js-like $(SRC) -o $(NAME)
+$(NAME): $(SRCS)
+	opa --parser js-like $(SRCS) -o $(NAME)
+
+run: $(NAME)
+	./$(NAME)
 
 clean:
 	rm -f $(NAME)

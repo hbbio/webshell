@@ -11,8 +11,8 @@ type User.t = {guest} or {FbLogin.user fb_user}
 WB = WBootstrap
 
 function focus(set) {
-	Log.warning("focus", set);
-	#status = "Focus: {set}";
+  Log.warning("focus", set);
+  #status = "Focus: {set}";
 }
 
 function prompt() {
@@ -24,45 +24,45 @@ function prompt() {
 }
 
 function warner(msg) {
-	#terminal_prev =+ msg;
+  #terminal_prev =+ msg;
 }
 
 function asker(_f, msg) {
-	#terminal_prev =+ msg;
+  #terminal_prev =+ msg;
 }
 
 function loop(ua)(_) {
-	LineEditor.init(ua, #editor, readevalwrite(_), true);
+  LineEditor.init(ua, #editor, readevalwrite(_), true);
 }
 
 function answer(expr) {
-	(xhtml) match (Parser.try_parse(Calc.shell, expr)) {
-		case { none }: <>syntax error</>
-		case { some: { value: result } }: <>{result}</>
-		case { some: { ~command, ~arg } }: <>{command}({arg})</>
-                case { some: { search:args } }: Search.search(args)
-                case { some: { set:args } }: Search.set(args)
-                case { some: { next } }: Search.next()
-                case { some: { prev } }: Search.prev()
-                case { some: { ~pagenum } }: Search.page(pagenum)
-	}
+  (xhtml) match (Parser.try_parse(Calc.shell, expr)) {
+    case { none }: <>syntax error</>
+    case { some: { value: result } }: <>{result}</>
+    case { some: { ~command, ~arg } }: <>{command}({arg})</>
+    case { some: { search:args } }: Search.search(args)
+    case { some: { set:args } }: Search.set(args)
+    case { some: { next } }: Search.next()
+    case { some: { prev } }: Search.prev()
+    case { some: { ~pagenum } }: Search.page(pagenum)
+  }
 }
 
 function readevalwrite(expr) {
-	element = 
-		<div>
-			<span>{prompt()}</span>
-			<span>{expr}</span>
-		</div>
-		<div>{answer(expr)}</div>;
-        update(element);
+  element =
+    <div>
+      <span>{prompt()}</span>
+      <span>{expr}</span>
+    </div>
+    <div>{answer(expr)}</div>;
+  update(element);
 }
 
 client function update(xhtml element) {
-	#terminal_prev =+ element;
-	LineEditor.clear();
-        Dom.scroll_to_bottom(#terminal);
-	Dom.scroll_to_bottom(Dom.select_window());
+  #terminal_prev =+ element;
+  LineEditor.clear();
+  Dom.scroll_to_bottom(#terminal);
+  Dom.scroll_to_bottom(Dom.select_window());
 }
 
 function login_box() {
