@@ -1,6 +1,6 @@
 NAME = webshell.exe
 
-SRC  = parser.opa editor.opa webshell.opa login.opa facebook.opa serach.opa dropbox.opa
+SRC  = parser.opa editor.opa webshell.opa login.opa facebook.opa search.opa dropbox.opa config.opa
 SRCS = $(SRC:%=src/%)
 
 all: $(NAME)

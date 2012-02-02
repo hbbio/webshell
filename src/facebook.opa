@@ -46,7 +46,7 @@ Please re-run your application with: --fb-config option")
   private FBA = FbAuth(config)
   private FBG = FbGraph
 
-  private redirect = "http://webshell.tutorials.opalang.org/connect"
+  private redirect = "http://{Config.host}/connect/facebook"
 
   private function get_fb_name(token) {
     opts = { FBG.Read.default_object with token:token.token }
