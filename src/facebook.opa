@@ -72,13 +72,14 @@ Please re-run your application with: --fb-config option")
       []
     )
 
-  function Login.user login(token) {
+  function login(token) {
     match (FBA.get_token_raw(token, redirect)) {
       case {~token}:
         fb_user = { ~token, name: get_fb_name(token) }
         {~fb_user}
       case {error:_}: {guest}
     }
+    |> Login.set_current_user
   }
 
   function get_name(user) {

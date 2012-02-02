@@ -110,14 +110,15 @@ function page() {
    )
 }
 
+function connect(connector, raw_data) {
+  connector(Text.to_string(raw_data))
+  Resource.default_redirection_page("/")
+}
+
 dispatcher = parser
-| "/connect?" data=(.*) ->
-    {
-      FacebookConnect.login(Text.to_string(data)) |> Login.set_current_user
-      Resource.default_redirection_page("/")
-    }
-| .* ->
-    page()
+| "/connect/facebook?" data=(.*) -> connect(FacebookConnect.login, data)
+| "/connect/dropbox?" data=(.*) -> connect(DropboxConnect.connect, data)
+| .* -> page()
 
 Server.start(Server.http, { custom: dispatcher })
 

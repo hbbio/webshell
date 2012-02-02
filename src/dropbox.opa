@@ -38,26 +38,42 @@ Please re-run your application with: --dropbox-config option")
 
   private DropboxOAuth = Dropbox(config).OAuth
 
-  private redirect = "http://localhost:8080"
+  private redirect = "http://{Config.host}/connect/dropbox"
 
-  exposed function connect() {
-    token = DropboxOAuth.get_request_token(redirect)
-    match (token) {
-      case {success: token}:
-        auth_url = DropboxOAuth.build_authorize_url(token.token, redirect)
-        Client.goto(auth_url)
-      default:
-        Log.error("Dropbox", "authorization failed")
+  private access_token = UserContext.make((option(string)) none)
+
+  exposed function get_access_token() {
+    function get_token(cache) {
+      match (cache) {
+        case {some: token}: some(token)
+        default:
+          token = DropboxOAuth.get_request_token(redirect)
+          match (token) {
+            case {success: token}:
+              auth_url = DropboxOAuth.build_authorize_url(token.token, redirect)
+              Client.goto(auth_url)
+              none
+            default:
+              Log.error("Dropbox", "authorization failed")
+              none
+          }
+      }
     }
+    UserContext.execute(get_token, access_token)
   }
 
   xhtml =
     WBootstrap.Button.make(
       { button:
          <span>Dropbox</>
-      , callback: function(_) { connect() }
+      , callback: function(_) { token = get_access_token(); void }
       },
       []
     )
+
+  function connect(token) {
+    Log.info("Dropbox", "Registering access token {token}")
+    UserContext.change(function (_) { some(token) }, access_token)
+  }
 
 }
