@@ -2,7 +2,7 @@
 // (c) MLstate, 2011, 2012
 // author: Adam Koprowski
 
-@abstract type Login.user = {guest} or {FbLogin.user fb_user}
+@abstract type Login.user = {guest} or {FacebookConnect.user fb_user}
 
 module Login {
 
@@ -19,7 +19,7 @@ module Login {
   function get_current_user_name() {
     match (get_current_user()) {
       case {guest}: "anonymous"
-      case {~fb_user}: FbLogin.get_name(fb_user)
+      case {~fb_user}: FacebookConnect.get_name(fb_user)
     }
   }
 

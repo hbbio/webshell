@@ -6,8 +6,6 @@
 import stdlib.themes.bootstrap
 import stdlib.widgets.bootstrap
 
-type User.t = {guest} or {FbLogin.user fb_user}
-
 WB = WBootstrap
 
 function focus(set) {
@@ -71,7 +69,7 @@ function login_box() {
   }
   login =
     prompt = <a>You can sign in with:</>
-    block(<>{prompt}{FbLogin.xhtml}</>)
+    block(<>{prompt}{FacebookConnect.xhtml}{DropboxConnect.xhtml}</>)
   logout =
     function do_logout(_) {
       Login.set_current_user({guest})
@@ -115,7 +113,7 @@ function page() {
 dispatcher = parser
 | "/connect?" data=(.*) ->
     {
-      FbLogin.login(Text.to_string(data)) |> Login.set_current_user
+      FacebookConnect.login(Text.to_string(data)) |> Login.set_current_user
       Resource.default_redirection_page("/")
     }
 | .* ->

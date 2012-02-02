@@ -6,14 +6,14 @@ import stdlib.apis.{facebook, facebook.auth, facebook.graph}
 import stdlib.{web.client, system}
 
  // FIXME should be abstract...
-type FbLogin.user =
+type FacebookConnect.user =
   { FbAuth.token token
   , string name
   }
 
 database Facebook.config /facebook_config
 
-module FbLogin
+module FacebookConnect
 {
 
   server config =
@@ -32,14 +32,14 @@ module FbLogin
           }
         }]
       , anonymous: []
-      , title: "Webshell: Facebook configuration"
+      , title: "Facebook configuration"
       }
     )
     match (?/facebook_config) {
       case {some: config}: config
       default:
         Log.error("webshell[config]", "Cannot read Facebook configuration (application id and/or secret key)
-Please re-run your application with: --fb-config APP_ID,APP_SECRET")
+Please re-run your application with: --fb-config option")
         System.exit(1)
     }
 
@@ -72,7 +72,7 @@ Please re-run your application with: --fb-config APP_ID,APP_SECRET")
       []
     )
 
-  function User.t login(token) {
+  function Login.user login(token) {
     match (FBA.get_token_raw(token, redirect)) {
       case {~token}:
         fb_user = { ~token, name: get_fb_name(token) }
