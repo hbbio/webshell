@@ -7,6 +7,12 @@ import stdlib.web.client
 
 database Dropbox.conf /dropbox_config
 
+ // TODO? could the generic OAuth authentication be bundled in that module?
+ //       only providing a single simple function?
+type Dropbox.credentials = {no_credentials}
+                        or {string request_secret, string request_token}
+                        or {Dropbox.creds authenticated}
+
 module DropboxConnect {
 
   private server config =
@@ -36,44 +42,90 @@ Please re-run your application with: --dropbox-config option")
         System.exit(1)
     }
 
-  private DropboxOAuth = Dropbox(config).OAuth
+  private DB = Dropbox(config)
 
   private redirect = "http://{Config.host}/connect/dropbox"
 
-  private access_token = UserContext.make((option(string)) none)
+  private creds = UserContext.make(Dropbox.credentials {no_credentials})
 
-  exposed function get_access_token() {
-    function get_token(cache) {
-      match (cache) {
-        case {some: token}: some(token)
-        default:
-          token = DropboxOAuth.get_request_token(redirect)
-          match (token) {
-            case {success: token}:
-              auth_url = DropboxOAuth.build_authorize_url(token.token, redirect)
-              Client.goto(auth_url)
-              none
-            default:
-              Log.error("Dropbox", "authorization failed")
-              none
-          }
-      }
+  private function set_auth_data(data) {
+    UserContext.change(function(_) { data }, creds)
+  }
+
+  private function get_auth_data() {
+    UserContext.execute(identity, creds)
+  }
+
+  private function authentication_failed() {
+    Log.info("Dropbox", "authentication failed")
+  }
+
+  function connect(data) {
+    Log.info("Dropbox", "connection data: {data}")
+    match (get_auth_data()) {
+      case ~{request_secret, request_token}:
+        match (DB.OAuth.connection_result(data)) {
+          case {success: s}:
+            if (s.token == request_token) {
+              match (DB.OAuth.get_access_token(s.token, request_secret, s.verifier)) {
+                case {success: s}:
+                  dropbox_creds = {token: s.token, secret: s.secret}
+                  Log.info("Dropbox", "got credentials: {dropbox_creds}")
+                  {authenticated: dropbox_creds} |> set_auth_data
+                default:
+                  authentication_failed()
+              }
+            } else
+              authentication_failed()
+           default:
+              authentication_failed()
+        }
+      default:
+        authentication_failed()
     }
-    UserContext.execute(get_token, access_token)
+  }
+
+  function authenticate() {
+    token = DB.OAuth.get_request_token(redirect)
+    Log.info("Dropbox", "Obtained request token {token}")
+    match (token) {
+      case {success: token}:
+          auth_url = DB.OAuth.build_authorize_url(token.token, redirect)
+          {request_secret: token.secret, request_token: token.token} |> set_auth_data
+          Client.goto(auth_url)
+          none
+        default:
+          Log.error("Dropbox", "authorization failed")
+          none
+      }
+  }
+
+  exposed function get_creds() {
+    match (get_auth_data()) {
+      case {authenticated: data}: some(data)
+      default:
+        authenticate();
+        none
+    }
   }
 
   xhtml =
     WBootstrap.Button.make(
       { button:
          <span>Dropbox</>
-      , callback: function(_) { token = get_access_token(); void }
+      , callback: function(_) { ls() }
       },
       []
     )
 
-  function connect(token) {
-    Log.info("Dropbox", "Registering access token {token}")
-    UserContext.change(function (_) { some(token) }, access_token)
+  function ls() {
+    match (get_creds()) {
+      case {some: creds}:
+        acc_info = DB.Account.info(creds)
+        Log.info("Dropbox", "Account info: {acc_info}")
+      default:
+        authentication_failed()
+    }
   }
 
 }
