@@ -1,6 +1,6 @@
 NAME = webshell.exe
 
-SRC  = parser.opa editor.opa webshell.opa login.opa fb_login.opa
+SRC  = parser.opa editor.opa webshell.opa login.opa fb_login.opa search.opa
 
 all: $(NAME)
 
