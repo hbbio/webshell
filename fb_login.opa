@@ -77,7 +77,7 @@ Please re-run your application with: --fb-config APP_ID,APP_SECRET")
       case {~token}:
         fb_user = { ~token, name: get_fb_name(token) }
         {~fb_user}
-      case {~error}: {guest}
+      case {error:_}: {guest}
     }
   }
 
