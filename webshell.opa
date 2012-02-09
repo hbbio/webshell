@@ -27,29 +27,38 @@ function warner(msg) {
 	#terminal_prev =+ msg;
 }
 
-function asker(f, msg) {
+function asker(_f, msg) {
 	#terminal_prev =+ msg;
 }
 
-client function loop(_) {
-	LineEditor.init(#editor, readevalwrite(_), true);
+function loop(ua)(_) {
+	LineEditor.init(ua, #editor, readevalwrite(_), true);
 }
 
 function answer(expr) {
-	match (Parser.try_parse(Calc.shell, expr)) {
-		case { none }: "syntax error"
-		case { some: { value: result } }: "{result}"
-		case { some: { ~command, ~arg } }: "{command}({arg})"
+	(xhtml) match (Parser.try_parse(Calc.shell, expr)) {
+		case { none }: <>syntax error</>
+		case { some: { value: result } }: <>{result}</>
+		case { some: { ~command, ~arg } }: <>{command}({arg})</>
+                case { some: { search:args } }: Search.search(args)
+                case { some: { set:args } }: Search.set(args)
+                case { some: { next } }: Search.next()
+                case { some: { prev } }: Search.prev()
+                case { some: { ~pagenum } }: Search.page(pagenum)
 	}
 }
 
-client function readevalwrite(expr) {
+function readevalwrite(expr) {
 	element = 
 		<div>
 			<span>{prompt()}</span>
 			<span>{expr}</span>
 		</div>
 		<div>{answer(expr)}</div>;
+        update(element);
+}
+
+client function update(xhtml element) {
 	#terminal_prev =+ element;
 	LineEditor.clear();
         Dom.scroll_to_bottom(#terminal);
@@ -88,7 +97,7 @@ function page() {
   html = WB.Layout.fixed(
     <div id="terminal">
       <div id="terminal_prev" />
-      <div id="terminal_curr" onready={loop}>
+      <div id="terminal_curr" onready={loop(HttpRequest.get_user_agent())}>
         {prompt()}
         <span id="editor"/>
       </>
@@ -129,6 +138,15 @@ css = css
     color: white;
     font-size: 14px;
     background-color: black;
+  }
+  .search-index {
+    color: yellow;
+  }
+  .search-title {
+    color: red;
+  }
+  .search-pubDate {
+    color: dimgrey;
   }
   .username {
     color: lime;

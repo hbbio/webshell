@@ -7,10 +7,27 @@
 client module Capture {
 	dhh = Reference.create({none});
 
-	function set(fpress, fdown) {
+        function user_agent_to_bind_options(option(user_compat) user_agent) {
+          (list(Dom.event_option)) match (user_agent) {
+            case {some:ua}:
+              match (ua.renderer) {
+                case {Bot:_}: [];
+                case {Gecko:_}: [{stop_propagation}];
+                case {Trident:_}: [];
+                case {Webkit:_, variant:_}: [];
+                case {Nokia:_}: [];
+                case {Presto:_}: [{prevent_default}];
+                case {Unidentified}: [];
+              }
+            case {none}: [];
+          }
+        }
+
+	function set(option(user_compat) user_agent, fpress, fdown) {
 		doc = Dom.select_document();
-		hpress = Dom.bind(doc, { keypress }, fpress);
-		hdown = Dom.bind(doc, { keydown }, fdown);
+                options = user_agent_to_bind_options(user_agent);
+                hpress = Dom.bind_with_options(doc, { keypress }, fpress(_), options);
+                hdown = Dom.bind_with_options(doc, { keydown }, fdown(_), options);
 		Reference.set(dhh, { some: { ~doc, ~hpress, ~hdown}});
 	}
 	
@@ -38,10 +55,10 @@ client module LineEditor {
           void
         }
 
-	function init(selector, callback, echo) {
+	function init(option(user_compat) user_agent, selector, callback, echo) {
 		*selector = editor;
                 Scheduler.timer(blinking_delay, cursor_blink)
-		Capture.set(evalKeyPress(echo, _), evalKeyDown(callback, _));
+		Capture.set(user_agent, evalKeyPress(echo, _), evalKeyDown(callback, _));
 	}
 	
 	function get() {
@@ -52,14 +69,15 @@ client module LineEditor {
 		#precaret="";
 		#postcaret="";
 	}
-	
-	function evalKeyPress(echo, event) {
-		match (event.key_code) {
-			case {none}: #status = "KeyPress not captured";
-			case {some: 13}: void;
-			case {some: key}: #status = "Key: {key}"; addChar(echo, event, key);
-		}
-	}
+
+        function evalKeyPress(echo, event) {
+          match ((event.key_modifiers,event.key_code)) {
+            case (_,{none}): #status = "KeyPress not captured";
+            case ([],{some: 8}): void;
+            case ([],{some: 13}): void;
+            case (_,{some: key}): #status = "Key: {key}"; addChar(echo, event, key);
+          }
+        }
 
 	function evalKeyDown(callback, event) {
 		match (event.key_code) {
