@@ -12,9 +12,36 @@ type search_params = {
   int p
 }
 
+database string /blekko_auth_key
+
 module Search {
 
-  auth = ""
+  auth =
+    _ = CommandLine.filter(
+      { init: void
+      , parsers: [{ CommandLine.default_parser with
+          names: ["--blekko-config"],
+          param_doc: "AUTH_KEY",
+          description: "Sets the authorization key for the Blekko application",
+          function on_param(state) {
+            parser auth_key=Rule.alphanum_string ->
+            {
+              /blekko_auth_key <- auth_key
+              {no_params: state}
+            }
+          }
+        }]
+      , anonymous: []
+      , title: "Blekko configuration"
+      }
+    )
+    match (?/blekko_auth_key) {
+      case {some: key}: key
+      default:
+        Log.error("webshell[config]", "Cannot read Blekko configuration (auth_key)
+Please re-run your application with: --blekko-config option")
+        System.exit(1)
+    }
 
   init_params = { auth:auth, ps:2, p:1, args:["Why I should do a search before calling next"] }
 
