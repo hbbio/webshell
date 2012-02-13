@@ -24,10 +24,12 @@ module FacebookConnect
           param_doc: "APP_ID,APP_SECRET",
           description: "Sets the application ID for the associated Facebook application",
           function on_param(state) {
-            parser app_id=Rule.alphanum_string [,] app_secret=Rule.alphanum_string ->
-            {
-              /facebook_config <- {~app_id, api_key: app_id, ~app_secret};
-              {no_params: state}
+            parser {
+              case app_id=Rule.alphanum_string [,] app_secret=Rule.alphanum_string:
+              {
+                /facebook_config <- {~app_id, api_key: app_id, ~app_secret};
+                {no_params: state}
+              }
             }
           }
         }]

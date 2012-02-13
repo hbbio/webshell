@@ -15,10 +15,12 @@ module Config {
           param_doc: "HOST",
           description: "Sets the address of the application (needed for all redirects)",
           function on_param(state) {
-            parser host=(.*) ->
-            {
-              /host <- Text.to_string(host)
-              {no_params: state}
+            parser {
+              case host=(.*) :
+              {
+                /host <- Text.to_string(host)
+                {no_params: state}
+              }
             }
           }
         }]

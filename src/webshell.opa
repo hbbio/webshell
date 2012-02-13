@@ -115,10 +115,11 @@ function connect(connector, raw_data) {
   Resource.default_redirection_page("/")
 }
 
-dispatcher = parser
-| "/connect/facebook?" data=(.*) -> connect(FacebookConnect.login, data)
-| "/connect/dropbox?" data=(.*) -> connect(DropboxConnect.connect, data)
-| .* -> page()
+dispatcher = parser {
+  case "/connect/facebook?" data=(.*) : connect(FacebookConnect.login, data)
+  case "/connect/dropbox?" data=(.*) : connect(DropboxConnect.connect, data)
+  case .* : page()
+}
 
 Server.start(Server.http, { custom: dispatcher })
 

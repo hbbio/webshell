@@ -13,43 +13,48 @@ client module Calc {
   }
 
   function ws(p) {
-    parser
-      | Rule.ws res=p Rule.ws -> res
+    parser { case Rule.ws res=p Rule.ws: res }
   }
 
-  `(` = ws(parser | "(" -> void)
-  `)` = ws(parser | ")" -> void)
+  `(` = ws(parser { case "(": void })
+  `)` = ws(parser { case ")": void })
 
-  term = parser
-  | f = {ws(Rule.float)} -> f
-  | `(` ~expr `)` -> expr
+  term = parser {
+    case f = {ws(Rule.float)}: f
+    case `(` ~expr `)`: expr
+  }
 
-  factor = parser
-  | ~term "*" ~factor -> term * factor
-  | ~term "/" ~factor -> term / factor
-  | ~term -> term
+  factor = parser {
+    case ~term "*" ~factor : term * factor
+    case ~term "/" ~factor : term / factor
+    case ~term : term
+  }
 
-  expr = parser
-  | ~factor "+" ~expr -> factor + expr
-  | ~factor "-" ~expr -> factor - expr
-  | ~factor -> factor
+  expr = parser {
+    case ~factor "+" ~expr : factor + expr
+    case ~factor "-" ~expr : factor - expr
+    case ~factor : factor
+  }
 
-  search = ws(parser | "search" -> void)
-  set = ws(parser | "set" -> void)
-  next = ws(parser | "next" -> void)
-  prev = ws(parser | "prev" -> void)
-  page = ws(parser | "page" -> void)
+  search = ws(parser { case "search" : void })
+  set = ws(parser { case "set" : void })
+  next = ws(parser { case "next" : void })
+  prev = ws(parser { case "prev" : void })
+  page = ws(parser { case "page" : void })
 
-  args = parser | txt=(.*) -> List.map(String.trim,String.explode(" ",Text.to_string(txt)))
+  args = parser {
+    case txt=(.*) : List.map(String.trim,String.explode(" ",Text.to_string(txt)))
+  }
 
-  shell = parser
-  | search ~args -> { search:args }
-  | set ~args -> { set:args }
-  | next -> { next }
-  | prev -> { prev }
-  | page pagenum={ws(Rule.natural)} -> { ~pagenum }
-  | command={ws(Rule.ident)} arg={ws(Rule.ident)} -> { ~command, ~arg }
-  | ~expr -> {value: expr}
+  shell = parser {
+    case search ~args : { search:args }
+    case set ~args : { set:args }
+    case next : { next }
+    case prev : { prev }
+    case page pagenum={ws(Rule.natural)} : { ~pagenum }
+    case command={ws(Rule.ident)} arg={ws(Rule.ident)} : { ~command, ~arg }
+    case ~expr : {value: expr}
+  }
 
   function compute(s) {
     match (Parser.try_parse(expr, s)) {

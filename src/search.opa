@@ -24,10 +24,12 @@ module Search {
           param_doc: "AUTH_KEY",
           description: "Sets the authorization key for the Blekko application",
           function on_param(state) {
-            parser auth_key=Rule.alphanum_string ->
-            {
-              /blekko_auth_key <- auth_key
-              {no_params: state}
+            parser {
+              case auth_key=Rule.alphanum_string :
+              {
+                /blekko_auth_key <- auth_key
+                {no_params: state}
+              }
             }
           }
         }]

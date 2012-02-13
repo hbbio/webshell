@@ -2,7 +2,7 @@
 // (c) MLstate, 2011, 2012
 // author: Adam Koprowski
 
-@abstract type Login.user = {guest} or {FacebookConnect.user fb_user}
+abstract type Login.user = {guest} or {FacebookConnect.user fb_user}
 
 module Login {
 

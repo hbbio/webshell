@@ -23,10 +23,12 @@ module DropboxConnect {
           param_doc: "APP_KEY,APP_SECRET",
           description: "Sets the application data for the associated Dropbox application",
           function on_param(state) {
-            parser app_key=Rule.alphanum_string [,] app_secret=Rule.alphanum_string ->
-            {
-              /dropbox_config <- ~{app_key, app_secret}
-              {no_params: state}
+            parser {
+              case app_key=Rule.alphanum_string [,] app_secret=Rule.alphanum_string :
+              {
+                /dropbox_config <- ~{app_key, app_secret}
+                {no_params: state}
+              }
             }
           }
         }]
