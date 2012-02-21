@@ -121,36 +121,9 @@ dispatcher = parser {
   case .* : page()
 }
 
-Server.start(Server.http, { custom: dispatcher })
-
-css = css
-  #Body {
-    background-color: #444;
-  }
-  #terminal {
-    border: 1px solid gray;
-    padding: 4px;
-    margin-top: 80px;
-    overflow-y: scroll;
-    width: 100%;
-    height: 500px;
-    font-family: courier, monospace;
-    color: white;
-    font-size: 14px;
-    background-color: black;
-  }
-  .search-index {
-    color: yellow;
-  }
-  .search-title {
-    color: red;
-  }
-  .search-pubDate {
-    color: dimgrey;
-  }
-  .username {
-    color: lime;
-  }
-  .prompt {
-    color: #0BC;
-  }
+Server.start(Server.http,
+             [ { resources: @static_resource_directory("resources") }
+             , { register: ["resources/style.css"] }
+             , { custom: dispatcher }
+             ]
+            )
