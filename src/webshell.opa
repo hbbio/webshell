@@ -10,7 +10,9 @@ WB = WBootstrap
 
 shell =
   Shell.build(
-    [ Service.make(Calc.spec) ]
+    [ Service.make(Calc.spec),
+      Service.make(Search.spec)
+    ]
   )
 
 function focus(set) {
@@ -37,21 +39,6 @@ function asker(_f, msg) {
 function loop(ua)(_) {
   LineEditor.init(ua, #editor, readevalwrite(_), true);
 }
-
-/*
-function answer(expr) {
-  (xhtml) match (Parser.try_parse(Calc.shell, expr)) {
-    case { none }: <>syntax error</>
-    case { some: { value: result } }: <>{result}</>
-    case { some: { ~command, ~arg } }: <>{command}({arg})</>
-    case { some: { search:args } }: Search.search(args)
-    case { some: { set:args } }: Search.set(args)
-    case { some: { next } }: Search.next()
-    case { some: { prev } }: Search.prev()
-    case { some: { ~pagenum } }: Search.page(pagenum)
-  }
-}
-*/
 
 function readevalwrite(cmd) {
   element =

@@ -35,12 +35,11 @@ module SearchParser {
   }
 
   shell = parser {
-    case search ~args : { search:args }
-    case set ~args : { set:args }
-    case next : { next }
-    case prev : { prev }
-    case page pagenum={Calc.ws(Rule.natural)} : { ~pagenum }
-    case command={Calc.ws(Rule.ident)} arg={Calc.ws(Rule.ident)} : { ~command, ~arg }
+    case search ~args : Search.search(args)
+    case set ~args : Search.set(args)
+    case next : Search.next()
+    case prev : Search.prev()
+    case page pagenum={Calc.ws(Rule.natural)} : Search.page(pagenum)
   }
 
 }
@@ -313,122 +312,14 @@ Please re-run your application with: --blekko-config option")
     <>{s}</>
   }
 
+  Service.spec spec =
+    { initial_state: void,
+      function parse_cmd(_) {
+        parser {
+        case res=SearchParser.shell:
+          { response: res, new_state: void }
+        }
+      }
+    }
 }
-
-/*
-xmlns:{args = [{name = version; namespace = ; value = 2.0}]; content = [{args = []; content = [{args = []; content = [{text = blekko | rss for &quot;cooking /findslashtag /rss /ps=2 /p=1&quot;}]; namespace = ; specific_attributes = {none = {}}; tag = title}, {args = []; content = [{text = http:/blekko.com/?q=cooking+%2Ffindslashtag+%2Frss+%2Fps%3D2+%2Fp%3D1}]; namespace = ; specific_attributes = {none = {}}; tag = link}, {args = []; content = [{text = Blekko search for &quot;cooking /findslashtag /rss /ps=2 /p=1&quot;}]; namespace = ; specific_attributes = {none = {}}; tag = description}, {args = []; content = [{text = en-us}]; namespace = ; specific_attributes = {none = {}}; tag = language}, {args = []; content = [{text = Copyright 2011 Blekko, Inc.}]; namespace = ; specific_attributes = {none = {}}; tag = copyright}, {args = []; content = [{text = http:/cyber.law.harvard.edu/rss/rss.html}]; namespace = ; specific_attributes = {none = {}}; tag = docs}, {args = []; content = [{text = webmaster@blekko.com}]; namespace = ; specific_attributes = {none = {}}; tag = webMaster}, {args = []; content = [{text = 265}]; namespace = ; specific_attributes = {none = {}}; tag = rescount}, {args = []; content = [{args = []; content = [{text = /tom/reviews}]; namespace = ; specific_attributes = {none = {}}; tag = title}, {args = []; content = [{text = http:/blekko.com/ws/view+/tom/reviews}]; namespace = ; specific_attributes = {none = {}}; tag = link}, {args = []; content = [{text = http:/blekko.com/ws/view+/tom/reviews}]; namespace = ; specific_attributes = {none = {}}; tag = guid}, {args = []; content = [{text = comma separated terms}]; namespace = ; specific_attributes = {none = {}}; tag= description}]; namespace = ; specific_attributes = {none = {}}; tag = item}, {args = []; content = [{args = []; content = [{text = /coenvalk/food}]; namespace = ; specific_attributes = {none = {}}; tag = title}, {args = []; content = [{text = http:/blekko.com/ws/view+/coenvalk/food}]; namespace = ; specific_attributes = {none = {}}; tag = link}, {args = []; content = [{text = http:/blekko.com/ws/view+/coenvalk/food}]; namespace = ; specific_attributes = {none = {}}; tag = guid}, {args = []; content = [{text = food, eating, cook, bake}]; namespace = ; specific_attributes = {none = {}}; tag = description}]; namespace = ; specific_attributes = {none = {}}; tag = item}]; namespace = ; specific_attributes = {none = {}}; tag = channel}]; namespace = ; specific_attributes = {none = {}}; tag = rss}
-*/
-
-/*
-{args = [{name = version; namespace = ; value = 2.0}];
- content = [{args = [];
-             content = [{args = [];
-                         content = [{text = blekko | rss for &quot;/news helicopter /rss /ps=2&quot;}];
-                         namespace = ;
-                         specific_attributes = {none = {}};
-                         tag = title},
-                        {args = [];
-                         content = [{text = http:/blekko.com/?q=%2Fnews+helicopter+%2Frss+%2Fps%3D2}];
-                         namespace = ;
-                         specific_attributes = {none = {}};
-                         tag = link},
-                        {args = [];
-                         content = [{text = Blekko search for &quot;/news helicopter /rss /ps=2&quot;}];
-                         namespace = ;
-                         specific_attributes = {none = {}};
-                         tag = description},
-                        {args = [];
-                         content = [{text = en-us}];
-                         namespace = ;
-                         specific_attributes = {none = {}};
-                         tag = language},
-                        {args = [];
-                         content = [{text = Copyright 2011 Blekko, Inc.}];
-                         namespace = ;
-                         specific_attributes = {none = {}};
-                         tag = copyright},
-                        {args = [];
-                         content = [{text = http:/cyber.law.harvard.edu/rss/rss.html}];
-                         namespace = ;
-                         specific_attributes = {none = {}};
-                         tag = docs},
-                        {args = [];
-                         content = [{text = webmaster@blekko.com}];
-                         namespace = ;
-                         specific_attributes = {none = {}};
-                         tag = webMaster},
-                        {args = [];
-                         content = [{text = 20K}];
-                         namespace = ;
-                         specific_attributes = {none = {}};
-                         tag = rescount},
-                        {args = [];
-                         content = [{args = [];
-                                     content = [{text = Trial begins in civil suit against Robinson Helicopter for 2006 crash - The Daily Breeze}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = title},
-                                    {args = [];
-                                     content = [{text = http:/www.dailybreeze.com/news/ci_19822166?source=rss}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = link},
-                                    {args = [];
-                                     content = [{text = "http:/www.dailybreeze.com/news/ci_19822166?source=rss Wed, 25 Jan 2012 20:38:43 -0800"}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = guid},
-                                    {args = [];
-                                     content = [{text = But according to Robinson Helicopter&amp;
-                                    #39;
-                                    s Raymond Hane, the likely cause of the accident was that Verellen entrusted the controls to Straatman, who did not have a pilot&amp;
-                                    #39;
-                                    s license. He said a Robinson test pilot checked out. The chopper before the keys were turned over to Verellen.}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = description},
-                                    {args = [];
-                                     content = [{text = Wed, 25 Jan 2012 20:38:43 -0800}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = pubDate}];
-                         namespace = ;
-                         specific_attributes = {none = {}};
-                         tag = item},
-                        {args = [];
-                         content = [{args = [];
-                                     content = [{text = Eurocopter Eyes Brazil Helicopter Exports By 2025 - Gannett Government Media - defensenews.com}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = title},
-                                    {args = [];
-                                     content = [{text = http:/www.defensenews.com/article/20120125/DEFREG01/301250013/Eurocopter-Eyes-Brazil-Helicopter-Exports-By-2025?odyssey=tab%7Ctopnews%7Ctext%7CFRONTPAGE}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = link},
-                                    {args = [];
-                                     content = [{text = http:/www.defensenews.com/article/20120125/DEFREG01/301250013/Eurocopter-Eyes-Brazil-Helicopter-Exports-By-2025?odyssey=tab%7Ctopnews%7Ctext%7CFRONTPAGE Wed, 25 Jan 2012 16:14:12 -0800}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = guid},
-                                    {args = [];
-                                     content =[{text = Currently, Eurocopter helicopters are designed in Europe. A Brazilian factory in Itajuba, Minas Gerais, only assembles Ecureuils helicopters.}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = description},
-                                    {args = [];
-                                     content = [{text = Wed, 25 Jan 2012 16:14:12 -0800}];
-                                     namespace = ;
-                                     specific_attributes = {none = {}};
-                                     tag = pubDate}];
-                                   namespace = ;
-                                   specific_attributes = {none = {}};
-                                   tag = item}];
-          namespace = ;
-          specific_attributes = {none = {}};
-          tag = channel}];
-  namespace = ;
-  specific_attributes = {none = {}};
-  tag = rss}
-*/
 
