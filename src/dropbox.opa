@@ -123,8 +123,8 @@ Please re-run your application with: --dropbox-config option")
   function ls() {
     match (get_creds()) {
       case {some: creds}:
-        acc_info = DB.Account.info(creds)
-        Log.info("Dropbox", "Account info: {acc_info}")
+        files = DB.Files("dropbox", "/").metadata(DB.default_metadata_options, creds)
+        Log.info("Dropbox", "Files: {files}")
       default:
         authentication_failed()
     }

@@ -3,7 +3,7 @@
 // author: Henri Binsztok
 // author: Adam Koprowski (adding Facebook-connectivity)
 
-import stdlib.themes.bootstrap
+import stdlib.themes.bootstrap.v1.4.0
 import stdlib.widgets.bootstrap
 
 WB = WBootstrap
