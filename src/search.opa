@@ -14,6 +14,37 @@ type search_params = {
 
 database string /blekko_auth_key
 
+module SearchParser {
+
+  function int_of_string(string str) {
+    (option(int)) Parser.try_parse(Rule.integer, str);
+  }
+
+  function nat_of_string(string str) {
+    (option(int)) Parser.try_parse(Rule.natural, str);
+  }
+
+  search = Calc.ws(parser { case "search" : void })
+  set = Calc.ws(parser { case "set" : void })
+  next = Calc.ws(parser { case "next" : void })
+  prev = Calc.ws(parser { case "prev" : void })
+  page = Calc.ws(parser { case "page" : void })
+
+  args = parser {
+    case txt=(.*) : List.map(String.trim,String.explode(" ",Text.to_string(txt)))
+  }
+
+  shell = parser {
+    case search ~args : { search:args }
+    case set ~args : { set:args }
+    case next : { next }
+    case prev : { prev }
+    case page pagenum={Calc.ws(Rule.natural)} : { ~pagenum }
+    case command={Calc.ws(Rule.ident)} arg={Calc.ws(Rule.ident)} : { ~command, ~arg }
+  }
+
+}
+
 module Search {
 
   auth =
@@ -117,7 +148,7 @@ Please re-run your application with: --blekko-config option")
     match (args) {
       case ["auth",auth]: set_auth({some:auth}); <>set auth to {auth}</>
       case ["ps",ps]:
-        match (Calc.nat_of_string(ps)) {
+        match (SearchParser.nat_of_string(ps)) {
           case {some:ps}:
             set_ps({some:ps}); <>set ps to {ps}</>
           case {none}: <>set ps &lt;int&gt;</>

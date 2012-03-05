@@ -41,13 +41,13 @@ server module Service {
 // implementation of a system (consisting of a bunch of services)
 abstract type System.t = list(Service.t)
 
-server module System {
+server module Shell {
 
   function System.t build(list(Service.t) services) {
     services
   }
 
-  function xhtml process(System.t sys, string cmd) {
+  function xhtml execute(System.t sys, string cmd) {
     recursive function aux(services) {
       match (services) {
       case []:

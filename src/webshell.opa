@@ -8,6 +8,11 @@ import stdlib.widgets.bootstrap
 
 WB = WBootstrap
 
+shell =
+  Shell.build(
+    [ Service.make(Calc.spec) ]
+  )
+
 function focus(set) {
   Log.warning("focus", set);
   #status = "Focus: {set}";
@@ -33,6 +38,7 @@ function loop(ua)(_) {
   LineEditor.init(ua, #editor, readevalwrite(_), true);
 }
 
+/*
 function answer(expr) {
   (xhtml) match (Parser.try_parse(Calc.shell, expr)) {
     case { none }: <>syntax error</>
@@ -45,14 +51,15 @@ function answer(expr) {
     case { some: { ~pagenum } }: Search.page(pagenum)
   }
 }
+*/
 
-function readevalwrite(expr) {
+function readevalwrite(cmd) {
   element =
     <div>
       <span>{prompt()}</span>
-      <span>{expr}</span>
+      <span>{cmd}</span>
     </div>
-    <div>{answer(expr)}</div>;
+    <div>{Shell.execute(shell, cmd)}</div>;
   update(element);
 }
 
