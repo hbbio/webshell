@@ -70,28 +70,32 @@ client module LineEditor {
 		#postcaret="";
 	}
 
+        function showStatus(_status) {
+                 void
+        }
+
         function evalKeyPress(echo, event) {
           match ((event.key_modifiers,event.key_code)) {
-            case (_,{none}): #status = "KeyPress not captured";
+            case (_,{none}): showStatus("KeyPress not captured");
             case ([],{some: 8}): void;
             case ([],{some: 13}): void;
-            case (_,{some: key}): #status = "Key: {key}"; addChar(echo, event, key);
+            case (_,{some: key}): showStatus("Key: {key}"); addChar(echo, event, key);
           }
         }
 
 	function evalKeyDown(callback, event) {
 		match (event.key_code) {
-			case {none}: #status = "KeyDown not captured";
-			case {some: 8}: #status = "Backspace"; deleteChar();
+			case {none}: showStatus("KeyDown not captured")
+			case {some: 8}: showStatus("Backspace"); deleteChar();
 			case {some: 13}:
-				#status = "Enter";
+				showStatus("Enter");
 				//Capture.unset();
 				callback(get());
-			case {some: 37}: #status = "Left"; move({left});
-			case {some: 38}: #status = "Up"; move({up});
-			case {some: 39}: #status = "Right"; move({right});
-			case {some: 40}: #status = "down"; move({down});
-			case {some: key}:  #status = "Key: {key} discarded"; void;
+			case {some: 37}: showStatus("Left"); move({left});
+			case {some: 38}: showStatus("Up"); move({up});
+			case {some: 39}: showStatus("Right"); move({right});
+			case {some: 40}: showStatus("down"); move({down});
+			case {some: key}:  showStatus("Key: {key} discarded"); void;
 		}
 	}
 	
