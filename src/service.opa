@@ -14,8 +14,8 @@ type Service.outcome('state) =
 
 // meta-data about the service (for help)
 type Service.metadata =
-  {  string id,
-    string name,
+  { string id,
+    string description,
     list({string cmd, string description}) cmds
   }
 
@@ -125,11 +125,31 @@ server module Shell {
   }
 
   private function print_generic_help(mods) {
-    <></>
+    function present_module(mod) {
+      <li><strong>{mod.id}</>: {mod.description}</>
+    }
+    <>Use: '<strong>help module</>' to get help about using given module. Available modules:
+    <ul>{List.map(present_module, mods)}</>
+    </>
   }
 
-  private function print_help_for(mods, mod) {
-    <></>
+  private function print_help_for(mods, mod_name) {
+    function show_cmd(cmd) {
+        <li><strong>{cmd.cmd}</>: {cmd.description}</>
+    }
+    function show_help(mod) {
+      <>
+        <strong>{mod.id}</>: {mod.description}
+        <ul>{List.map(show_cmd, mod.cmds)}</>
+      </>
+    }
+    function good_module(m) { m.id == mod_name }
+    match (List.find(good_module, mods)) {
+    case {some: mod}: show_help(mod)
+    default:
+      all_modules = List.map(_.id, mods)
+      <>Unknown module: '{mod_name}'. Available modules: {List.to_string_using("", "", ", ", all_modules)}</>
+    }
   }
 
   private function core_parser(mods) {
@@ -147,13 +167,14 @@ server module Shell {
   }
 
   private function core_handler(mods) {
-    { cmd_executor: core_executor(mods),
-      metadata: {
-        id: "core",
-        name: "Core shell functionality",
+    metadata =
+      { id: "core",
+        description: "Core shell functionality",
         cmds: [ { cmd: "clear",         description: "Clear the shell screen" },
                 { cmd: "help [module]", description: "Prints help about given 'module'. If module ommited prints all available modules." } ]
       }
+    { cmd_executor: core_executor([metadata | List.map(_.metadata, mods)]),
+      ~metadata
     }
   }
 

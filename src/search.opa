@@ -316,7 +316,7 @@ Please re-run your application with: --blekko-config option")
     { initial_state: void,
       metadata: {
         id: "search",
-        name: "Blekko search",
+        description: "Performing web search with Blekko",
         cmds: [ { cmd: "search [terms]", description: "Performs a web search with given keywords" },
                 { cmd: "next",           description: "Shows next page with results" },
                 { cmd: "prev",           description: "Shows previous page with results" },

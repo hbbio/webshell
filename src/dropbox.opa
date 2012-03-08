@@ -143,7 +143,7 @@ Please re-run your application with: --dropbox-config option")
     { initial_state: Dropbox.credentials {no_credentials},
       metadata: {
         id: "dropbox",
-        name: "Dropbox file-storage",
+        description: "Managing Dropbox file storage",
         cmds: [ { cmd: "ls",  description: "Lists contents of the current directory" } ],
       },
       function parse_cmd(creds) {
