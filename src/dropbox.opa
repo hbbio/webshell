@@ -11,7 +11,7 @@ database Dropbox.conf /dropbox_config
  //       only providing a single simple function?
 type Dropbox.credentials = {no_credentials}
                         or {string request_secret, string request_token}
-                        or {Dropbox.creds authenticated}
+                        or {Dropbox.creds authenticated, string path}
 
 module DropboxConnect {
 
@@ -61,7 +61,7 @@ Please re-run your application with: --dropbox-config option")
             case {success: s}:
               dropbox_creds = {token: s.token, secret: s.secret}
               Log.info("Dropbox", "got credentials: {dropbox_creds}")
-              {authenticated: dropbox_creds}
+              {authenticated: dropbox_creds, path: "/"}
             default:
               authentication_failed
             }
@@ -98,29 +98,39 @@ Please re-run your application with: --dropbox-config option")
 
   private date_printer = Date.generate_printer("%Y-%m-%d %k:%M")
 
-  private function show_element(Dropbox.element element) {
-    info =
+  private function show_element(path, Dropbox.element element) {
+    function get_name(fname) {
+      if (String.has_prefix(path, fname))
+        String.drop_left(String.length(path), fname)
+      else
+        fname
+    }
+    (info, fname, size) =
       match (element) {
-      case {file, ~metadata, ...}: metadata
-      case {folder, ~metadata, ...}: metadata
+      case {file, ~metadata, ...}:
+        name = get_name(metadata.path)
+        (metadata, <>{name}</>, "{metadata.size}")
+      case {folder, ~metadata, ...}:
+        name = <span class="fn-type-folder">{get_name(metadata.path)}</>
+        (metadata, name, "")
       }
-    size = "{info.size}"
-    modification = Option.map(Date.to_formatted_string(date_printer, _), info.modified) ? ""
-    name = info.path
-    <pre>{size |> pad(10, _)}   {modification |> pad(16, _)}   {name}</>
+    final_size = size |> pad(10, _)
+    show_date = Date.to_formatted_string(date_printer, _)
+    modification = Option.map(show_date, info.modified) ? ""
+    <pre>{final_size}   {modification}   {fname}</>
   }
 
-  private function files_to_xhtml(files) {
-    <>{List.map(show_element, files)}</>
+  private function files_to_xhtml(files, path) {
+    <>{List.map(show_element(path, _), files)}</>
   }
 
   function ls(creds) {
     match (creds) {
-    case {authenticated: creds}:
-      db_files = DB.Files("dropbox", "/").metadata(DB.default_metadata_options, creds)
+    case {authenticated: creds, ~path}:
+      db_files = DB.Files("dropbox", path).metadata(DB.default_metadata_options, creds)
       response =
         match (db_files) {
-        case {success: {~contents, ...}}: files_to_xhtml(contents ? [])
+        case {success: {~contents, ...}}: files_to_xhtml(contents ? [], path)
         default: <>Dropbox connection failed</>
         }
       Service.respond_with(response)
