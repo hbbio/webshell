@@ -48,86 +48,68 @@ Please re-run your application with: --dropbox-config option")
 
   private redirect = "http://{Config.host}/connect/dropbox"
 
-  private creds = UserContext.make(Dropbox.credentials {no_credentials})
-
-  private function set_auth_data(data) {
-    UserContext.change(function(_) { data }, creds)
-  }
-
-  private function get_auth_data() {
-    UserContext.execute(identity, creds)
-  }
-
-  private function authentication_failed() {
-    Log.info("Dropbox", "authentication failed")
-  }
-
-  function connect(data) {
-    Log.info("Dropbox", "connection data: {data}")
-    match (get_auth_data()) {
+  function login(executor)(raw_token) {
+    function connect(auth_data) {
+      Log.info("Dropbox", "connection data: {raw_token}")
+      authentication_failed = {no_credentials}
+      match (auth_data) {
       case ~{request_secret, request_token}:
-        match (DB.OAuth.connection_result(data)) {
-          case {success: s}:
-            if (s.token == request_token) {
-              match (DB.OAuth.get_access_token(s.token, request_secret, s.verifier)) {
-                case {success: s}:
-                  dropbox_creds = {token: s.token, secret: s.secret}
-                  Log.info("Dropbox", "got credentials: {dropbox_creds}")
-                  {authenticated: dropbox_creds} |> set_auth_data
-                default:
-                  authentication_failed()
-              }
-            } else
-              authentication_failed()
-           default:
-              authentication_failed()
+        match (DB.OAuth.connection_result(raw_token)) {
+        case {success: s}:
+          if (s.token == request_token) {
+            match (DB.OAuth.get_access_token(s.token, request_secret, s.verifier)) {
+            case {success: s}:
+              dropbox_creds = {token: s.token, secret: s.secret}
+              Log.info("Dropbox", "got credentials: {dropbox_creds}")
+              {authenticated: dropbox_creds}
+            default:
+              authentication_failed
+            }
+          } else
+            authentication_failed
+        default:
+          authentication_failed
         }
       default:
-        authentication_failed()
+        authentication_failed
+      }
     }
+    executor(connect)
   }
 
   function authenticate() {
     token = DB.OAuth.get_request_token(redirect)
     Log.info("Dropbox", "Obtained request token {token}")
     match (token) {
-      case {success: token}:
-          auth_url = DB.OAuth.build_authorize_url(token.token, redirect)
-          {request_secret: token.secret, request_token: token.token} |> set_auth_data
-          Client.goto(auth_url)
-          none
-        default:
-          Log.error("Dropbox", "authorization failed")
-          none
+    case {success: token}:
+      auth_url = DB.OAuth.build_authorize_url(token.token, redirect)
+      auth_state = {request_secret: token.secret, request_token: token.token}
+      { response: {redirect: auth_url},
+        state_change: {new_state: auth_state}
       }
-  }
-
-  exposed function get_creds() {
-    match (get_auth_data()) {
-      case {authenticated: data}: some(data)
-      default:
-        authenticate();
-        none
+    default:
+      Service.respond_with(<>Dropbox authorization failed</>)
     }
   }
 
-  xhtml =
-    WBootstrap.Button.make(
-      { button:
-         <span>Dropbox</>
-      , callback: function(_) { ls() }
-      },
-      []
-    )
-
-  function ls() {
-    match (get_creds()) {
-      case {some: creds}:
-        files = DB.Files("dropbox", "/").metadata(DB.default_metadata_options, creds)
-        Log.info("Dropbox", "Files: {files}")
-      default:
-        authentication_failed()
+  function ls(creds) {
+    match (creds) {
+    case {authenticated: creds}:
+      files = DB.Files("dropbox", "/").metadata(DB.default_metadata_options, creds)
+      ls_xhtml = <>Files: {files}</>
+      Service.respond_with(ls_xhtml)
+    default:
+      authenticate()
     }
   }
+
+  Service.spec spec =
+    { initial_state: Dropbox.credentials {no_credentials},
+      function parse_cmd(creds) {
+        parser {
+        case "ls": ls(creds)
+        }
+      }
+    }
 
 }

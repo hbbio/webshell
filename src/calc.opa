@@ -32,7 +32,7 @@ module Calc {
     { initial_state: void,
       function parse_cmd(_) {
         parser {
-        case ~expr : { response: <>= {expr}</>, new_state: void }
+        case ~expr : Service.respond_with(<>= {expr}</>)
         }
       }
     }

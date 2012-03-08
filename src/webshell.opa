@@ -8,12 +8,11 @@ import stdlib.widgets.bootstrap
 
 WB = WBootstrap
 
-shell =
-  Shell.build(
-    [ Service.make(Calc.spec),
-      Service.make(Search.spec)
-    ]
-  )
+calc = Service.make(Calc)
+search = Service.make(Search)
+dropbox = Service.make(DropboxConnect)
+
+shell = Shell.build([calc.cmd_executor, search.cmd_executor, dropbox.cmd_executor])
 
 function focus(set) {
   Log.warning("focus", set);
@@ -63,7 +62,7 @@ function login_box() {
   }
   login =
     prompt = <a>You can sign in with:</>
-    block(<>{prompt}{FacebookConnect.xhtml}{DropboxConnect.xhtml}</>)
+    block(<>{prompt}{FacebookConnect.xhtml}</>)
   logout =
     function do_logout(_) {
       Login.set_current_user({guest})
@@ -110,9 +109,12 @@ function connect(connector, raw_data) {
 }
 
 dispatcher = parser {
-  case "/connect/facebook?" data=(.*) : connect(FacebookConnect.login, data)
-  case "/connect/dropbox?" data=(.*) : connect(DropboxConnect.connect, data)
-  case .* : page()
+  case "/connect/facebook?" data=(.*) ->
+    connect(FacebookConnect.login, data)
+  case "/connect/dropbox?" data=(.*) ->
+    connect(DropboxConnect.login(dropbox.fun_executor), data)
+  case .* ->
+    page()
 }
 
 Server.start(Server.http,

@@ -316,8 +316,7 @@ Please re-run your application with: --blekko-config option")
     { initial_state: void,
       function parse_cmd(_) {
         parser {
-        case res=SearchParser.shell:
-          { response: res, new_state: void }
+        case res=SearchParser.shell: Service.respond_with(res)
         }
       }
     }
