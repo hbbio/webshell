@@ -77,7 +77,7 @@ Please re-run your application with: --dropbox-config option")
     executor(connect)
   }
 
-  function authenticate() {
+  private function authenticate() {
     token = DB.OAuth.get_request_token(redirect)
     Log.info("Dropbox", "Obtained request token {token}")
     match (token) {
@@ -92,12 +92,38 @@ Please re-run your application with: --dropbox-config option")
     }
   }
 
+  private function pad(length, s) {
+    String.pad_left(" ", length, s)
+  }
+
+  private date_printer = Date.generate_printer("%Y-%m-%d %k:%M")
+
+  private function show_element(Dropbox.element element) {
+    info =
+      match (element) {
+      case {file, ~metadata, ...}: metadata
+      case {folder, ~metadata, ...}: metadata
+      }
+    size = "{info.size}"
+    modification = Option.map(Date.to_formatted_string(date_printer, _), info.modified) ? ""
+    name = info.path
+    <pre>{size |> pad(10, _)}   {modification |> pad(16, _)}   {name}</>
+  }
+
+  private function files_to_xhtml(files) {
+    <>{List.map(show_element, files)}</>
+  }
+
   function ls(creds) {
     match (creds) {
     case {authenticated: creds}:
-      files = DB.Files("dropbox", "/").metadata(DB.default_metadata_options, creds)
-      ls_xhtml = <>Files: {files}</>
-      Service.respond_with(ls_xhtml)
+      db_files = DB.Files("dropbox", "/").metadata(DB.default_metadata_options, creds)
+      response =
+        match (db_files) {
+        case {success: {~contents, ...}}: files_to_xhtml(contents ? [])
+        default: <>Dropbox connection failed</>
+        }
+      Service.respond_with(response)
     default:
       authenticate()
     }

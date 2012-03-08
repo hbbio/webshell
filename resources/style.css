@@ -28,3 +28,11 @@
   .prompt {
     color: #0BC;
   }
+pre {
+  display: block !important;
+  white-space: pre !important;
+  font-family: monospace !important;
+  background-color: transparent !important;
+  padding: 0px !important;
+  margin: 0px !important;
+}
