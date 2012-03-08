@@ -30,6 +30,11 @@ module Calc {
 
   Service.spec spec =
     { initial_state: void,
+      metadata: {
+        id: "calc",
+        name: "Simple calculator",
+        cmds: [ { cmd: "[EXPR]",  description: "Calculates the result of the given expression, using operators: +, -, *, / and parenthesses" } ]
+      },
       function parse_cmd(_) {
         parser {
         case ~expr : Service.respond_with(<>= {expr}</>)
@@ -38,5 +43,3 @@ module Calc {
     }
 
 }
-
-

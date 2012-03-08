@@ -12,7 +12,7 @@ calc = Service.make(Calc)
 search = Service.make(Search)
 dropbox = Service.make(DropboxConnect)
 
-shell = Shell.build([calc.cmd_executor, search.cmd_executor, dropbox.cmd_executor])
+shell = Shell.build([calc.handler, search.handler, dropbox.handler])
 
 function focus(set) {
   Log.warning("focus", set);

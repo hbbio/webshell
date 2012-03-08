@@ -12,10 +12,18 @@ type Service.state_change('state) =
 type Service.outcome('state) =
   { Service.response response, Service.state_change('state) state_change }
 
+// meta-data about the service (for help)
+type Service.metadata =
+  {  string id,
+    string name,
+    list({string cmd, string description}) cmds
+  }
+
  // specification of a single service
 type Service.spec('state) =
   { 'state initial_state,
-    ('state -> Parser.general_parser(Service.outcome('state))) parse_cmd
+    ('state -> Parser.general_parser(Service.outcome('state))) parse_cmd,
+    Service.metadata metadata
   }
 
 type Service.cmd_executor =
@@ -24,10 +32,15 @@ type Service.cmd_executor =
 type Service.fun_executor('state) =
   ('state -> 'state) -> void
 
+type Service.handler =
+  { Service.cmd_executor cmd_executor,
+    Service.metadata metadata
+  }
+
  // implementation of a service
 type Service.t('state) =
-  { Service.cmd_executor cmd_executor,
-    Service.fun_executor('state) fun_executor
+  { Service.fun_executor('state) fun_executor,
+    Service.handler handler
   }
 
 server module Service {
@@ -66,8 +79,11 @@ server module Service {
    // builds a service from its specification
   function Service.t make({Service.spec spec, ...} service) {
     cell = Cell.make(service.spec.initial_state, process_request(service, _, _))
-    { cmd_executor: function (cmd) { Cell.call(cell, {execute_cmd: cmd}) },
-      fun_executor: function (fun) { _ = Cell.call(cell, {execute_fun: fun}); void }
+    { fun_executor: function (fun) { _ = Cell.call(cell, {execute_fun: fun}); void },
+      handler: {
+        cmd_executor: function (cmd) { Cell.call(cell, {execute_cmd: cmd}) },
+        metadata: service.spec.metadata
+      }
     }
   }
 
@@ -80,11 +96,11 @@ server module Service {
 }
 
 // implementation of a system (consisting of a bunch of services)
-abstract type System.t = list(Service.cmd_executor)
+abstract type System.t = list(Service.handler)
 
 server module Shell {
 
-  function System.t build(list(Service.cmd_executor) services) {
+  function System.t build(list(Service.handler) services) {
     services
   }
 
@@ -94,18 +110,51 @@ server module Shell {
       case []:
           <>Unknown command</>
       case [service | services]:
-        match (service(cmd)) {
+        match (service.cmd_executor(cmd)) {
         case {response: {~outcome}}:
           outcome
         case {response: {~redirect}}:
           Client.goto(redirect);
           <></>
-        default:
+        case {cannot_handle}:
           aux(services)
         }
       }
     }
-    aux(sys)
+    aux([core_handler(sys) | sys])
+  }
+
+  private function print_generic_help(mods) {
+    <></>
+  }
+
+  private function print_help_for(mods, mod) {
+    <></>
+  }
+
+  private function core_parser(mods) {
+    parser {
+    case "help": print_generic_help(mods)
+    case "help" Rule.ws mod=(.*): print_help_for(mods, Text.to_string(mod))
+    }
+  }
+
+  private function core_executor(mods)(string cmd) {
+    match (Parser.try_parse(core_parser(mods), cmd)) {
+    case {some: res}: {response: {outcome: res}}
+    default: {cannot_handle}
+    }
+  }
+
+  private function core_handler(mods) {
+    { cmd_executor: core_executor(mods),
+      metadata: {
+        id: "core",
+        name: "Core shell functionality",
+        cmds: [ { cmd: "clear",         description: "Clear the shell screen" },
+                { cmd: "help [module]", description: "Prints help about given 'module'. If module ommited prints all available modules." } ]
+      }
+    }
   }
 
 }

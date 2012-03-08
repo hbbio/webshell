@@ -141,6 +141,11 @@ Please re-run your application with: --dropbox-config option")
 
   Service.spec spec =
     { initial_state: Dropbox.credentials {no_credentials},
+      metadata: {
+        id: "dropbox",
+        name: "Dropbox file-storage",
+        cmds: [ { cmd: "ls",  description: "Lists contents of the current directory" } ],
+      },
       function parse_cmd(creds) {
         parser {
         case "ls": ls(creds)
