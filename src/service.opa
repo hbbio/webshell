@@ -156,6 +156,10 @@ server module Shell {
     parser {
     case "help": print_generic_help(mods)
     case "help" Rule.ws mod=(.*): print_help_for(mods, Text.to_string(mod))
+    case "clear":
+      LineEditor.clear();
+      #terminal_prev = <></>;
+      <></>
     }
   }
 
