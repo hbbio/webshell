@@ -22,6 +22,9 @@
 .search-pubDate {
   color: dimgrey;
 }
+.userbox {
+  float: right;
+}
 .username {
   color: lime;
 }

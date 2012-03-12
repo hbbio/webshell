@@ -65,14 +65,9 @@ Please re-run your application with: --fb-config option")
 
   xhtml =
     login_url = FBA.user_login_url([], redirect)
-    WBootstrap.Button.make(
-      { button:
-         <img style="width:18px; height:18px; vertical-align:top;" title="Facebook" src="https://opalang.org/sso/img/fb-icon.png" alt="Connect with Facebook" />
-         <span>Facebook</>
-      , callback: function(_) { Client.goto(login_url) }
-      },
-      []
-    )
+    <a onclick={function (_) { Client.goto(login_url) }}>
+      <img src="resources/img/facebook_signin.png" />
+    </>
 
   function login(token) {
     match (FBA.get_token_raw(token, redirect)) {

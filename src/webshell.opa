@@ -60,9 +60,7 @@ function login_box() {
   function block(content) {
     <h3 style="float: right">{content}</>
   }
-  login =
-    prompt = <a>You can sign in with:</>
-    block(<>{prompt}{FacebookConnect.xhtml}</>)
+  login = <>{FacebookConnect.xhtml}</>
   logout =
     function do_logout(_) {
       Login.set_current_user({guest})
@@ -71,10 +69,12 @@ function login_box() {
     name = <a>{Login.get_current_user_name()}</>
     button = WBootstrap.Button.make({ button: <>Logout</>, callback: do_logout}, [])
     block(<>{button}{name}</>)
-  match (Login.get_current_user()) {
-    case {guest}: login
-    default: logout
-  }
+  content =
+    match (Login.get_current_user()) {
+      case {guest}: login
+      default: logout
+    }
+  <span class=userbox>{content}</>
 }
 
 function page() {
