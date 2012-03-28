@@ -78,7 +78,7 @@ function login_box() {
   <span class=userbox>{content}</>
 }
 
-function page() {
+function page(cmd) {
   topbar =
     WB.Navigation.fixed_navbar(
       WB.Layout.fixed(
@@ -96,10 +96,16 @@ function page() {
       </>
     </>
   )
+  function onready(_) {
+    match (cmd) {
+    case {some: cmd}: readevalwrite(cmd)
+    default: void
+    }
+  }
   Resource.html("webshell",
      <>
        {topbar}
-       {html}
+       <span onready={onready}>{html}</>
        <div id="status"/>
      </>
    )
@@ -117,8 +123,10 @@ dispatcher = parser {
     connect(TwitterConnect.login(twitter.fun_executor), data)
   case "/connect/dropbox?" data=(.*) ->
     connect(DropboxConnect.login(dropbox.fun_executor), data)
+  case "/do=" cmd=(.*) ->
+    page(some(Text.to_string(cmd)))
   case .* ->
-    page()
+    page(none)
 }
 
 Server.start(Server.http,
