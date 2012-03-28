@@ -100,14 +100,16 @@ Please re-run your application with: --dropbox-config option")
 
   private function show_element(path, Dropbox.element element) {
     function get_name(fname) {
-      if (String.has_prefix(path, fname))
-        String.drop_left(String.length(path), fname)
+      drop_prefix = if (String.has_prefix("/", path)) path else "/{path}"
+      if (String.has_prefix(drop_prefix, fname))
+        String.drop_left(String.length(drop_prefix), fname)
       else
         fname
     }
     (info, fname, size) =
       match (element) {
       case {file, ~metadata, ...}:
+        Log.info("DB", "path: {path}, filename: {metadata.path}");
         name = get_name(metadata.path)
         (metadata, <>{name}</>, "{metadata.size}")
       case {folder, ~metadata, ...}:
@@ -124,10 +126,32 @@ Please re-run your application with: --dropbox-config option")
     <>{List.map(show_element(path, _), files)}</>
   }
 
-  function ls(creds) {
-    match (creds) {
+  function sanitize_url(url) {
+    String.replace(" ", "%20", url) // shouldn't this be taken care of somewhere in stdlib?
+  }
+
+  function normalize_path(path) {
+    recursive function aux(segs) {
+      match (segs) {
+      case []: []
+      case ["." | xs]: aux(xs)
+      case [x, ".." | xs]: aux(xs)
+      case [x | xs]: [x | aux(xs)]
+      }
+    }
+    String.explode_with("/", path, true)
+      |> aux
+      |> List.to_string_using("", "/", "/", _)
+  }
+
+  function path_available(path) {
+    true
+  }
+
+  function ls(state) {
+    match (state) {
     case {authenticated: creds, ~path}:
-      db_files = DB.Files("dropbox", path).metadata(DB.default_metadata_options, creds)
+      db_files = DB.Files("dropbox", sanitize_url(path)).metadata(DB.default_metadata_options, creds)
       response =
         match (db_files) {
         case {success: {~contents, ...}}: files_to_xhtml(contents ? [], path)
@@ -139,16 +163,35 @@ Please re-run your application with: --dropbox-config option")
     }
   }
 
+  function cd(state, cd_path) {
+    match (state) {
+    case {authenticated: creds, ~path}:
+      new_path = normalize_path("{path}/{cd_path}")
+      if (path_available(new_path))
+        { response: {outcome: <></>},
+          state_change: {new_state: {authenticated: creds, path: new_path}}
+        }
+      else
+        Service.respond_with(<>cd: {cd_path}: No such file or directory</>)
+    default:
+      authenticate()
+    }
+  }
+
   Service.spec spec =
     { initial_state: Dropbox.credentials {no_credentials},
       metadata: {
         id: "dropbox",
         description: "Managing Dropbox file storage",
-        cmds: [ { cmd: "ls",  description: "Lists contents of the current directory" } ],
+        cmds: [
+          { cmd: "ls", description: "Lists contents of the current directory" },
+          { cmd: "cd [path]", description: "Change to given directory" }
+        ],
       },
-      function parse_cmd(creds) {
+      function parse_cmd(state) {
         parser {
-        case "ls": ls(creds)
+        case "ls": ls(state)
+        case "cd" Rule.ws path=(.*) : cd(state, Text.to_string(path))
         }
       }
     }
