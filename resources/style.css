@@ -32,6 +32,7 @@
   color: #0BC;
 }
 pre {
+  color: white !important;
   display: block !important;
   white-space: pre !important;
   font-family: monospace !important;

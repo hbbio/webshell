@@ -3,7 +3,7 @@
 // author: Henri Binsztok
 // author: Adam Koprowski (adding Facebook-connectivity)
 
-import stdlib.themes.bootstrap.v1.4.0
+import stdlib.themes.bootstrap
 import stdlib.widgets.bootstrap
 
 WB = WBootstrap
@@ -79,11 +79,12 @@ function login_box() {
 
 function page() {
   topbar =
-    WB.Navigation.topbar(
+    WB.Navigation.fixed_navbar(
       WB.Layout.fixed(
         WB.Navigation.brand(<>webshell</>, none, ignore) <+>
         {login_box()}
-      )
+      ),
+      {top}
     )
   html = WB.Layout.fixed(
     <div id="terminal">
