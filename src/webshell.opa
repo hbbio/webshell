@@ -11,8 +11,9 @@ WB = WBootstrap
 calc = Service.make(Calc)
 search = Service.make(Search)
 dropbox = Service.make(DropboxConnect)
+twitter = Service.make(TwitterConnect)
 
-shell = Shell.build([calc.handler, search.handler, dropbox.handler])
+shell = Shell.build([calc.handler, search.handler, dropbox.handler, twitter.handler])
 
 function focus(set) {
   Log.warning("focus", set);
@@ -112,6 +113,8 @@ function connect(connector, raw_data) {
 dispatcher = parser {
   case "/connect/facebook?" data=(.*) ->
     connect(FacebookConnect.login, data)
+  case "/connect/twitter?" data=(.*) ->
+    connect(TwitterConnect.login, data)
   case "/connect/dropbox?" data=(.*) ->
     connect(DropboxConnect.login(dropbox.fun_executor), data)
   case .* ->
