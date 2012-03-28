@@ -94,7 +94,8 @@ Please re-run your application with: --twitter-config option")
   private function tweet(state, content) {
     match (state) {
     case {authenticated: creds}:
-      Service.respond_with(<>Unimplemented...</>)
+      tweet = TW.post_status(content, "", creds)
+      Service.respond_with(<>Tweeted: <em>«{tweet.text}»</></>)
     default:
       authenticate()
     }
@@ -106,7 +107,7 @@ Please re-run your application with: --twitter-config option")
         id: "twitter",
         description: "Managing Twitter account",
         cmds: [
-          { cmd: "tweet [content]", description: "Publishes a given tween" }
+          { cmd: "tweet [content]", description: "Publishes a given tweet" }
         ],
       },
       function parse_cmd(state) {
