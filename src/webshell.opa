@@ -114,7 +114,7 @@ dispatcher = parser {
   case "/connect/facebook?" data=(.*) ->
     connect(FacebookConnect.login, data)
   case "/connect/twitter?" data=(.*) ->
-    connect(TwitterConnect.login, data)
+    connect(TwitterConnect.login(twitter.fun_executor), data)
   case "/connect/dropbox?" data=(.*) ->
     connect(DropboxConnect.login(dropbox.fun_executor), data)
   case .* ->

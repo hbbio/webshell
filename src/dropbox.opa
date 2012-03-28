@@ -9,9 +9,9 @@ database Dropbox.conf /dropbox_config
 
  // TODO? could the generic OAuth authentication be bundled in that module?
  //       only providing a single simple function?
-type Dropbox.credentials = {no_credentials}
-                        or {string request_secret, string request_token}
-                        or {Dropbox.creds authenticated, string path}
+type Dropbox.status = {no_credentials}
+                   or {string request_secret, string request_token}
+                   or {Dropbox.creds authenticated, string path}
 
 module DropboxConnect {
 
@@ -145,7 +145,7 @@ Please re-run your application with: --dropbox-config option")
   }
 
   function path_available(path) {
-    true
+    true // FIXME
   }
 
   function ls(state) {
@@ -179,7 +179,7 @@ Please re-run your application with: --dropbox-config option")
   }
 
   Service.spec spec =
-    { initial_state: Dropbox.credentials {no_credentials},
+    { initial_state: Dropbox.status {no_credentials},
       metadata: {
         id: "dropbox",
         description: "Managing Dropbox file storage",

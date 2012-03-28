@@ -6,9 +6,9 @@ import stdlib.apis.{twitter, oauth}
 
 database Twitter.configuration /twitter_config
 
-type Twitter.credentials = {no_credentials}
-                        or {string request_secret, string request_token}
-                        or {Twitter.credentials authenticated}
+type Twitter.status = {no_credentials}
+                   or {string request_secret, string request_token}
+                   or {Twitter.credentials authenticated}
 
 module TwitterConnect
 {
@@ -49,8 +49,33 @@ Please re-run your application with: --twitter-config option")
 
   private redirect = "http://{Config.host}/connect/twitter"
 
-  function login(raw_token) {
-    error("YYY")
+  function login(executor)(raw_token) {
+    function connect(auth_data) {
+      Log.info("Twitter", "connection data: {raw_token}")
+      authentication_failed = {no_credentials}
+      match (auth_data) {
+      case ~{request_secret, request_token}:
+        match (TWA.connection_result(raw_token)) {
+        case {success: s}:
+          if (s.token == request_token) {
+            match (TWA.get_access_token(s.token, request_secret, s.verifier)) {
+            case {success: s}:
+              twitter_creds = {access_token: s.token, access_secret: s.secret}
+              Log.info("Twitter", "got credentials: {twitter_creds}")
+              {authenticated: twitter_creds}
+            default:
+              authentication_failed
+            }
+          } else
+            authentication_failed
+        default:
+          authentication_failed
+        }
+      default:
+        authentication_failed
+      }
+    }
+    executor(connect)
   }
 
   private function authenticate() {
@@ -76,7 +101,7 @@ Please re-run your application with: --twitter-config option")
   }
 
   Service.spec spec =
-    { initial_state: Twitter.credentials {no_credentials},
+    { initial_state: Twitter.status {no_credentials},
       metadata: {
         id: "twitter",
         description: "Managing Twitter account",
