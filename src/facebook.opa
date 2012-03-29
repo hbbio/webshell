@@ -13,6 +13,9 @@ type FacebookConnect.user =
 
 database Facebook.config /facebook_config
 
+type Facebook.status = {no_credentials}
+                    or {FbAuth.token authenticated}
+
 module FacebookConnect
 {
 
@@ -63,24 +66,67 @@ Please re-run your application with: --fb-config option")
     }
   }
 
+  private auth_url = FBA.user_login_url([{publish_stream}], redirect)
+
   xhtml =
-    login_url = FBA.user_login_url([], redirect)
-    <a onclick={function (_) { Client.goto(login_url) }}>
+    <a onclick={function (_) { Client.goto(auth_url) }}>
       <img src="resources/img/facebook_signin.png" />
     </>
 
-  function login(token) {
-    match (FBA.get_token_raw(token, redirect)) {
+  function login(executor)(token) {
+    function connect(_) {
+      match (FBA.get_token_raw(token, redirect)) {
       case {~token}:
         fb_user = { ~token, name: get_fb_name(token) }
-        {~fb_user}
-      case {error:_}: {guest}
+        Login.set_current_user({~fb_user});
+        {authenticated: token}
+      case {error:_}: {no_credentials}
+      }
     }
-    |> Login.set_current_user
+    executor(connect)
   }
 
   function get_name(user) {
     user.name
   }
+
+  private function authenticate() {
+    { response: {redirect: auth_url},
+      state_change: {no_change}
+    }
+  }
+
+
+  function publish_status(state, status) {
+    match (state) {
+    case {authenticated: creds}:
+      feed = { Facebook.empty_feed with message: status }
+      outcome = FbGraph.Post.feed(feed, creds.token)
+      response =
+        match (outcome) {
+        case {~success}: <>Successfully published Facebook feed item: «{feed.message}»</>
+        case {~error}: <>Error: <b>{error.error}</b>; {error.error_description}</>
+        }
+      Service.respond_with(response)
+    default:
+      authenticate()
+    }
+  }
+
+  Service.spec spec =
+    { initial_state: Facebook.status {no_credentials},
+      metadata: {
+        id: "facebook",
+        description: "Managing Facebook account",
+        cmds: [
+          { cmd: "fbstatus [content]", description: "Publishes a given Facebook status" }
+        ],
+      },
+      function parse_cmd(state) {
+        parser {
+        case "fbstatus" Rule.ws content=(.*) : publish_status(state, Text.to_string(content))
+        }
+      }
+    }
 
 }
