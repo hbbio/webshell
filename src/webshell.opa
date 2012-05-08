@@ -132,7 +132,7 @@ dispatcher = parser {
 
 Server.start(Server.http,
              [ { resources: @static_resource_directory("resources") }
-             , { register: ["resources/style.css"] }
+             , { register: [{css: ["resources/style.css"]}] }
              , { custom: dispatcher }
              ]
             )

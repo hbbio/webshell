@@ -10,7 +10,9 @@ type Service.state_change('state) =
 
  // service response to a command
 type Service.outcome('state) =
-  { Service.response response, Service.state_change('state) state_change }
+  { Service.response response,
+    Service.state_change('state) state_change
+  }
 
 // meta-data about the service (for help)
 type Service.metadata =
@@ -39,52 +41,37 @@ type Service.handler =
 
  // implementation of a service
 type Service.t('state) =
-  { Service.fun_executor('state) fun_executor,
-    Service.handler handler
+  { Service.handler handler,
+    Service.fun_executor('state) fun_executor
   }
 
 server module Service {
 
-  private function execute_cmd(service, state, cmd) {
-    cmd_parser = service.spec.parse_cmd(state)
+  private function execute_cmd(service, ctx, cmd) {
+    cmd_parser = UserContext.execute(service.parse_cmd, ctx)
     match (Parser.try_parse(cmd_parser, cmd)) {
     case {some: res}:
-      instruction =
-        match (res.state_change) {
-        case {no_change}: {unchanged}
-        case {new_state: state}: {set: state}
-        }
-      { return: {response: res.response}, ~instruction }
-    default:
-      { return: {cannot_handle},
-        instruction: {unchanged}
-      }
-    }
-  }
-
-  private function execute_fun(state, fun) {
-    new_state = fun(state)
-    { return: {cannot_handle},
-      instruction: {set: new_state}
-    }
-  }
-
-  private function process_request(service, state, cmd) {
-    match (cmd) {
-    case {execute_fun: fun}: execute_fun(state, fun)
-    case {execute_cmd: cmd}: execute_cmd(service, state, cmd)
+      match (res.state_change) {
+      case {no_change}:
+        void
+      case {new_state: new_state}:
+        UserContext.change(function (_) { new_state }, ctx)
+      };
+      {response: res.response}
+    case {none}:
+      {cannot_handle}
     }
   }
 
    // builds a service from its specification
   function Service.t make({Service.spec spec, ...} service) {
-    cell = Cell.make(service.spec.initial_state, process_request(service, _, _))
-    { fun_executor: function (fun) { _ = Cell.call(cell, {execute_fun: fun}); void },
-      handler: {
-        cmd_executor: function (cmd) { Cell.call(cell, {execute_cmd: cmd}) },
-        metadata: service.spec.metadata
+    state = UserContext.make(service.spec.initial_state)
+    handler =
+      { metadata: service.spec.metadata,
+        cmd_executor: execute_cmd(service.spec, state, _)
       }
-    }
+    fun_executor = UserContext.change(_, state)
+    ~{handler, fun_executor}
   }
 
   function respond_with(xhtml) {
