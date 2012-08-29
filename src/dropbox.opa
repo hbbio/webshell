@@ -135,7 +135,7 @@ Please re-run your application with: --dropbox-config option")
       match (segs) {
       case []: []
       case ["." | xs]: aux(xs)
-      case [x, ".." | xs]: aux(xs)
+      case [_x, ".." | xs]: aux(xs)
       case [x | xs]: [x | aux(xs)]
       }
     }

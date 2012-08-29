@@ -80,7 +80,7 @@ Please re-run your application with: --twitter-config option")
 
   private function authenticate() {
     match (TWA.get_request_token(redirect)) {
-    case {~error}:
+    case {error:_}:
       Service.respond_with(<>Twitter authorization failed</>)
     case {success: token}:
       auth_url = TWA.build_authorize_url(token.token)

@@ -104,7 +104,7 @@ Please re-run your application with: --fb-config option")
       outcome = FbGraph.Post.feed(feed, creds.token)
       response =
         match (outcome) {
-        case {~success}: <>Successfully published Facebook feed item: «{feed.message}»</>
+        case {success:_}: <>Successfully published Facebook feed item: «{feed.message}»</>
         case {~error}: <>Error: <b>{error.error}</b>; {error.error_description}</>
         }
       Service.respond_with(response)

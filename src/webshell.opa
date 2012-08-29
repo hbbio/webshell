@@ -113,7 +113,7 @@ function page(cmd) {
 }
 
 function connect(connector, raw_data) {
-  connector(Text.to_string(raw_data))
+  _ = connector(Text.to_string(raw_data))
   Resource.default_redirection_page("/")
 }
 
