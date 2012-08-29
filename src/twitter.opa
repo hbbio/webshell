@@ -13,9 +13,9 @@ type Twitter.status = {no_credentials}
 module TwitterConnect
 {
 
-  server config =
-    _ = CommandLine.filter(
-      { init: void
+  config =
+    state = CommandLine.filter(
+      { init: none
       , parsers: [{ CommandLine.default_parser with
           names: ["--twitter-config"],
           param_doc: "APP_KEY,APP_SECRET",
@@ -24,10 +24,11 @@ module TwitterConnect
             parser {
               case app_key=Rule.alphanum_string [,] app_secret=Rule.alphanum_string:
               {
-                  /twitter_config <- { consumer_key: app_key,
-                                       consumer_secret: app_secret
-                                     }
-                {no_params: state}
+                tw_config = { consumer_key: app_key,
+                  consumer_secret: app_secret
+                }
+                // /twitter_config <- tw_config
+                {no_params: some(tw_config)}
               }
             }
           }
@@ -36,7 +37,7 @@ module TwitterConnect
       , title: "Twitter configuration"
       }
     )
-    match (?/twitter_config) {
+    match (state) {
       case {some: config}: config
       default:
         Log.error("webshell[config]", "Cannot read Twitter configuration (application key and/or secret key)

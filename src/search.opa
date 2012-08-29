@@ -45,8 +45,8 @@ module SearchParser {
 module Search {
 
   auth =
-    _ = CommandLine.filter(
-      { init: void
+    state = CommandLine.filter(
+      { init: none
       , parsers: [{ CommandLine.default_parser with
           names: ["--blekko-config"],
           param_doc: "AUTH_KEY",
@@ -55,8 +55,8 @@ module Search {
             parser {
               case auth_key=Rule.alphanum_string :
               {
-                /blekko_auth_key <- auth_key
-                {no_params: state}
+                // /blekko_auth_key <- auth_key
+                {no_params: some(auth_key)}
               }
             }
           }
@@ -65,7 +65,7 @@ module Search {
       , title: "Blekko configuration"
       }
     )
-    match (?/blekko_auth_key) {
+    match (state) {
       case {some: key}: key
       default:
         Log.error("webshell[config]", "Cannot read Blekko configuration (auth_key)
