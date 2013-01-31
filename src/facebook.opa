@@ -20,8 +20,8 @@ module FacebookConnect
 {
 
   server config =
-    _ = CommandLine.filter(
-      { init: void
+    state = CommandLine.filter(
+      { init: none
       , parsers: [{ CommandLine.default_parser with
           names: ["--fb-config"],
           param_doc: "APP_ID,APP_SECRET",
@@ -30,8 +30,9 @@ module FacebookConnect
             parser {
               case app_id=Rule.alphanum_string [,] app_secret=Rule.alphanum_string:
               {
-                /facebook_config <- {~app_id, api_key: app_id, ~app_secret};
-                {no_params: state}
+                fb_config = {~app_id, api_key: app_id, ~app_secret};
+                // /facebook_config <- fb_config
+                {no_params: some(fb_config)}
               }
             }
           }
@@ -40,7 +41,7 @@ module FacebookConnect
       , title: "Facebook configuration"
       }
     )
-    match (?/facebook_config) {
+    match (state) {
       case {some: config}: config
       default:
         Log.error("webshell[config]", "Cannot read Facebook configuration (application id and/or secret key)
@@ -104,7 +105,7 @@ Please re-run your application with: --fb-config option")
       outcome = FbGraph.Post.feed(feed, creds.token)
       response =
         match (outcome) {
-        case {~success}: <>Successfully published Facebook feed item: «{feed.message}»</>
+        case {success:_}: <>Successfully published Facebook feed item: «{feed.message}»</>
         case {~error}: <>Error: <b>{error.error}</b>; {error.error_description}</>
         }
       Service.respond_with(response)

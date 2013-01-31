@@ -1,7 +1,5 @@
-
 import stdlib.web.client
 import stdlib.core.xhtml
-import stdlib.core.xmlm
 
 type item = { option(string) title, option(string) link, option(string) guid, option(string) description, option(string) pubDate }
 
@@ -47,8 +45,8 @@ module SearchParser {
 module Search {
 
   auth =
-    _ = CommandLine.filter(
-      { init: void
+    state = CommandLine.filter(
+      { init: none
       , parsers: [{ CommandLine.default_parser with
           names: ["--blekko-config"],
           param_doc: "AUTH_KEY",
@@ -57,8 +55,8 @@ module Search {
             parser {
               case auth_key=Rule.alphanum_string :
               {
-                /blekko_auth_key <- auth_key
-                {no_params: state}
+                // /blekko_auth_key <- auth_key
+                {no_params: some(auth_key)}
               }
             }
           }
@@ -67,7 +65,7 @@ module Search {
       , title: "Blekko configuration"
       }
     )
-    match (?/blekko_auth_key) {
+    match (state) {
       case {some: key}: key
       default:
         Log.error("webshell[config]", "Cannot read Blekko configuration (auth_key)
@@ -111,7 +109,7 @@ Please re-run your application with: --blekko-config option")
     (xhtml) match (WebClient.Get.try_get(uri)) {
       case {failure:f}: <>"{f}"</>;
       case {success:result}:
-        match (Xmlm.try_parse(result.content)) {
+        match (Xmlns.try_parse(result.content)) {
           case {some:xmlm}:
             match (dig(xmlm)) {
               case {success:(title,items)}: format_items(title,items);
@@ -167,7 +165,7 @@ Please re-run your application with: --blekko-config option")
 
   function get_text(option(xml('a,'b)) xml_) {
     match (xml_) {
-      case {some:{args:_, content:[{~text}], namespace:_, specific_attributes:_, tag:_}}: {some:text};
+      case {some:{args:_, content:[{~text}], ...}}: {some:text};
       default: none;
     }
   }
@@ -190,7 +188,7 @@ Please re-run your application with: --blekko-config option")
       case {~content_unsafe}: {failure:content_unsafe};
       case {fragment:_}: {failure:"fragment"};
       case {xml_dialect:_}: {failure:"xml_dialect"};
-      case {args:_, ~content, namespace:_, specific_attributes:_, tag:"rss"}:
+      case {~content, tag:"rss", ...}:
         match (get_content(single_tag("channel",content))) {
           case {some:content}:
             title = get_text(single_tag("title",content));
@@ -222,7 +220,7 @@ Please re-run your application with: --blekko-config option")
   function get_item(xml('a,'b) xml_) {
     //jlog("xml_:{xml_}");
     match (xml_) {
-      case {args:_,~content, namespace:_, specific_attributes:_, tag:"item"}:
+      case {~content, tag:"item", ...}:
         title = get_text(single_tag("title",content))
         link = get_text(single_tag("link",content))
         guid = get_text(single_tag("guid",content))
